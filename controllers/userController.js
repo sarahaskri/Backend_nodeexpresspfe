@@ -1,93 +1,120 @@
 const userSchema = require("../models/userSchema");
 const bcrypt = require("bcrypt");
+const jwt = require('jsonwebtoken');
+const express = require('express');
+const app = express();
+app.use(express.json()); 
 
-module.exports.addUserAdherent=async(req,res) => {
-    try{
-        const {firstname,lastname,email,password,age} = req.body;
+
+module.exports.addUserAdherent = async (req, res) => {
+    try {
+        const { firstname, lastname, email, password, age } = req.body;
         const role = "adherent";
-        const user = await userSchema.create({firstname,lastname,email,password,role:role,age});
-            res.status(200).json({user});
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-}
+        // Vérification du format du mot de passe
+        const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(password)) {
+            return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
+        }
 
-module.exports.addUserAdmin=async(req,res) => {
-    try{
-        const {firstname,lastname,email,password,age} = req.body;
+        // Vérification si l'email existe déjà
+        const existingUser = await userSchema.findOne({ email });
+        if (existingUser) {
+            return res.status(400).json("Cet email est déjà utilisé");
+        }
+ 
+        // Création de l'utilisateur (le hachage du mot de passe est déjà géré dans userSchema.js)
+        const user = await userSchema.create({ firstname, lastname, email, password, role, age });
+
+        // Retourne une réponse structurée
+        res.status(201).json({
+            firstname: user.firstname,
+            lastname: user.lastname,
+            email: user.email,
+            role: user.role,
+            _id: user._id,
+            createdAt: user.createdAt,
+            updatedAt: user.updatedAt
+        });
+
+    } catch (error) {
+        console.error(error);
+        res.status(500).json("Erreur serveur");
+    }
+};
+
+
+module.exports.addUserAdmin = async (req, res) => {
+    try {
+        const { firstname, lastname, email, password, age } = req.body;
         const role = "admin";
-        const user = await userSchema.create({firstname,lastname,email,password,role:role,age});
-            res.status(200).json({user});
+        const user = await userSchema.create({ firstname, lastname, email, password, role: role, age });
+        res.status(200).json({ user });
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-}
-module.exports.getAllUsers=async(req,res) => {
-    try{
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports.getAllUsers = async (req, res) => {
+    try {
         const users = await userSchema.find();
-            res.status(200).json(users);
+        res.status(200).json(users);
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-}
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-
-
-module.exports.getUserById=async(req,res) => {
-    try{
+module.exports.getUserById = async (req, res) => {
+    try {
         const id = req.params.id;
         const user = await userSchema.findById(id);
-            res.status(200).json(user);
-  
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-}  
+        res.status(200).json(user);
 
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-
-module.exports.deleteUserById=async(req,res) => {
-    try{
+module.exports.deleteUserById = async (req, res) => {
+    try {
         const id = req.params.id;
         const checkifExist = await userSchema.findById(id);
-        if(!checkifExist){
-            res.status(404).json({message:"user not found"});
+        if (!checkifExist) {
+            res.status(404).json({ message: "user not found" });
         }
         const user = await userSchema.findByIdAndDelete(id);
-        
-            res.status(200).json(user);
+        res.status(200).json(user);
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-} 
-module.exports.addUserAdherentWithImg=async(req,res) => {
-    try{
-        const {firstname,lastname,email,password} = req.body;
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+module.exports.addUserAdherentWithImg = async (req, res) => {
+    try {
+        const { firstname, lastname, email, password } = req.body;
         const role = "adherent";
-        const {file_name} = req.file
-        const user = await userSchema.create({firstname,lastname,email,password,role:role,user_image:file_name});
-            res.status(200).json({user});
+        const { file_name } = req.file;
+        const user = await userSchema.create({ firstname, lastname, email, password, role: role, user_image: file_name });
+        res.status(200).json({ user });
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-} 
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-module.exports.upDateAdherent=async(req,res) => {
-    try{
+module.exports.upDateAdherent = async (req, res) => {
+    try {
         const id = req.params.id;
-       
+        res.status(200).json(esmFonction);
 
-            res.status(200).json(esmFonction);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-} 
 exports.updateUserById = async (req, res) => {
     try {
         const id = req.params.id;
@@ -138,12 +165,87 @@ module.exports.searchByUserName = async (req, res) => {
     }
 };
 
-module.exports.getAllUsersByAge=async(req,res) => {
-    try{
-        const users = await userSchema.find().sort({age:1});
-            res.status(200).json(users);
+module.exports.getAllUsersByAge = async (req, res) => {
+    try {
+        const users = await userSchema.find().sort({ age: 1 });
+        res.status(200).json(users);
 
-} catch(error){
-    res.status(500).json({message:error.message});
-}
-}
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+module.exports.loginUser = async (req, res) => {
+    try {
+        const { email, password } = req.body;
+
+        // Recherche de l'utilisateur par son email
+        console.log("Recherche de l'utilisateur avec l'email:", email); // Log pour débogage
+        const user = await userSchema.findOne({ email });
+
+        if (!user) {
+            console.log("Utilisateur non trouvé pour l'email:", email); // Log pour débogage
+            return res.status(400).json({ message: "Utilisateur non trouvé" });
+        }
+
+        // Comparaison du mot de passe hashé
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (!isPasswordValid) {
+            console.log("Mot de passe incorrect pour l'utilisateur:", email); // Log pour débogage
+            return res.status(400).json({ message: "Mot de passe incorrect" });
+        }
+
+        // Connexion réussie
+        console.log("Connexion réussie pour l'utilisateur:", email); // Log pour débogage
+        return res.status(200).json({
+            message: "Connexion réussie",
+            user: { email: user.email, firstname: user.firstname },
+        });
+    } catch (error) {
+        console.error("Erreur serveur:", error); // Log pour débogage
+        return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
+
+module.exports.addProfileInformation = async (req, res) => {
+    try {
+        const { email, gender, age, weight, height } = req.body;
+
+        const user = await userSchema.findOneAndUpdate(
+            { email }, // Recherche l'utilisateur par email
+            { $set: { gender, age, weight, height } }, // Met à jour les champs
+            { new: true, runValidators: true }
+        );
+
+        if (!user) {
+            return res.status(404).json({ message: "Utilisateur non trouvé" });
+        }
+
+        res.status(200).json({ message: "Informations mises à jour avec succès", user });
+
+    } catch (error) {
+        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    }
+};
+
+module.exports.handleGoogleSignIn = async (req, res) => {try {
+    const { uid, email, firstName, lastName } = req.body;
+
+    let user = await User.findOne({ email });
+    if (!user) {
+      user = new User({
+        uid,
+        email,
+        firstname: firstName,
+        lastname: lastName,
+        password: "", // vide pour Google
+      });
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Connexion Google réussie", user });
+  } catch (error) {
+    console.error("Erreur Google Sign-In :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+  };

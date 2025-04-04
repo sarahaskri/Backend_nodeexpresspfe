@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
         enum: ["admin", "adherent"],
         required: true
     },
+    gender: { type: String, enum: ["Male", "Female"] },
     age: { type: Number }, // Correction : âge devrait être un Number
     height: { type: Number },
     weight: { type: Number },
@@ -34,21 +35,21 @@ userSchema.pre("save", async function (next) {
     if (!this.isModified("password")) return next();
     
     try {
-        const salt = await bcrypt.genSalt(10);
-        this.password = await bcrypt.hash(this.password, salt);
-              // user.etat = false;
-       
-        // Trouver le dernier utilisateur pour récupérer la valeur de `count`
-        const lastUser = await User.findOne().sort({ count: -1 });
-
-        // Calcul du nouveau count
-        const newCount = lastUser ? lastUser.count + 1 : 1;
-        next();
+      const salt = await bcrypt.genSalt(10);
+      this.password = await bcrypt.hash(this.password, salt);
+      
+      // Trouver le dernier utilisateur pour récupérer la valeur de `count`
+      const lastUser = await this.constructor.findOne().sort({ count: -1 });
+  
+      // Calcul du nouveau count
+      const newCount = lastUser ? lastUser.count + 1 : 1;
+      this.count = newCount; // Assigner la valeur à `count`
+      next();
     } catch (error) {
-        next(error);
+      next(error);
     }
-}); 
-
+  });
+  
 
 
 const User = mongoose.model('User', userSchema);

@@ -12,6 +12,8 @@ router.post('/addUserAdherentWithImg', upload.single('user_image'), userControll
 router.put('/updateUserById/:id', userController.updateUserById); 
 router.get('/searchByUserName', userController.searchByUserName); 
 router.get('/getAllUsersByAge', userController.getAllUsersByAge); 
-
-module.exports = router;
+router.post('/loginUser', userController.loginUser);
+router.put('/addProfileInformation', userController.addProfileInformation);
+router.post('/handleGoogleSignIn', userController.handleGoogleSignIn);
+module.exports = router; 
   
