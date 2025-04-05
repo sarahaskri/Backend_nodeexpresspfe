@@ -29,16 +29,21 @@ app.use(cors({
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/os', osRouter); 
-
 app.use('/api/users', usersRouter);
+
 app.post('/api/users/register', addUserAdherent);
 app.post('/api/users/login', loginUser);
 app.put('/api/users/addProfileInformation', addProfileInformation);
-app.post('/api/users/handleGoogleSignIn', handleGoogleSignIn);
- 
+// Assure-toi que cette route est bien définie
+app.post('/api/users/GoogleSignIn', (req, res) => {
+  // Traitement de la connexion Google ici
+  res.send('Google Sign-In réussi');
+});
+
+
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  next(createError(404));
+  next(createError(404)); 
 });
 
 // error handler

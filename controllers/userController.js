@@ -228,24 +228,24 @@ module.exports.addProfileInformation = async (req, res) => {
     }
 };
 
-module.exports.handleGoogleSignIn = async (req, res) => {try {
-    const { uid, email, firstName, lastName } = req.body;
-
-    let user = await User.findOne({ email });
-    if (!user) {
-      user = new User({
-        uid,
-        email,
-        firstname: firstName,
-        lastname: lastName,
-        password: "", // vide pour Google
-      });
-      await user.save();
-    }
-
-    res.status(200).json({ message: "Connexion Google réussie", user });
-  } catch (error) {
-    console.error("Erreur Google Sign-In :", error);
-    res.status(500).json({ message: "Erreur serveur" });
-  }
-  };
+module.exports.handleGoogleSignIn = async (req, res) => {
+    try {
+      const { uid, email, firstName, lastName } = req.body;
+  
+      let user = await user.findOne({ email });
+      if (!user) {
+        user = new User({
+          uid,
+          email,
+          firstname: firstName,
+          lastname: lastName,
+          password: "", // vide pour Google
+        });
+        await user.save();
+      }
+  
+      res.status(200).json({ message: "Connexion Google réussie", user });
+    } catch (error) {
+      console.error("Erreur Google Sign-In :", error);
+      res.status(500).json({ message: "Erreur serveur" });
+    }};
