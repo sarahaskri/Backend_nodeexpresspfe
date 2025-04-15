@@ -15,7 +15,10 @@ router.get('/getAllUsersByAge', userController.getAllUsersByAge);
 router.post('/loginUser', userController.loginUser);
 router.put('/addProfileInformation', userController.addProfileInformation);
 router.post('/handleGoogleSignIn', userController.handleGoogleSignIn);
+router.post('/addMeal', userController.addMeal);
+router.post('/todayMeal', userController.todayMeal);
 
+ 
 
 module.exports = router; 
   

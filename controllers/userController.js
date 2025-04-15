@@ -1,10 +1,12 @@
 const userSchema = require("../models/userSchema");
+const Meal = require("../models/mealSchema");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const app = express();
-app.use(express.json()); 
-
+app.use(express.json());
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
 
 module.exports.addUserAdherent = async (req, res) => {
     try {
@@ -22,7 +24,7 @@ module.exports.addUserAdherent = async (req, res) => {
         if (existingUser) {
             return res.status(400).json("Cet email est déjà utilisé");
         }
- 
+
         // Création de l'utilisateur (le hachage du mot de passe est déjà géré dans userSchema.js)
         const user = await userSchema.create({ firstname, lastname, email, password, role, age });
 
@@ -230,22 +232,90 @@ module.exports.addProfileInformation = async (req, res) => {
 
 module.exports.handleGoogleSignIn = async (req, res) => {
     try {
-      const { uid, email, firstName, lastName } = req.body;
-  
-      let user = await user.findOne({ email });
-      if (!user) {
-        user = new User({
-          uid,
-          email,
-          firstname: firstName,
-          lastname: lastName,
-          password: "", // vide pour Google
-        });
-        await user.save();
-      }
-  
-      res.status(200).json({ message: "Connexion Google réussie", user });
+        const { uid, email, firstName, lastName } = req.body;
+
+        let user = await user.findOne({ email });
+        if (!user) {
+            user = new User({
+                uid,
+                email,
+                firstname: firstName,
+                lastname: lastName,
+                password: "", // vide pour Google
+            });
+            await user.save();
+        }
+
+        res.status(200).json({ message: "Connexion Google réussie", user });
     } catch (error) {
-      console.error("Erreur Google Sign-In :", error);
-      res.status(500).json({ message: "Erreur serveur" });
-    }};
+        console.error("Erreur Google Sign-In :", error);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+
+
+
+module.exports.addMeal = async (req, res) => {
+    const { userId, mealType, mealName, date, time } = req.body;
+
+    if (!userId || !mealType || !mealName || !date || !time) {
+        return res.status(400).json({ message: 'Missing fields' });
+    }
+
+    try {
+        // Vérifier si l'utilisateur existe
+        const user = await userSchema.findById(userId);
+        if (!user) return res.status(404).json({ message: 'User not found' });
+
+        // Créer un nouveau repas dans le modèle DailyMeal
+        const newMeal = new Meal({
+            userId,
+            mealType,
+            mealName,
+            date,
+            time
+        });
+
+        // Sauvegarder le repas dans la collection DailyMeals
+        await newMeal.save();
+
+        res.status(200).json({ message: 'Meal added successfully', meal: newMeal });
+    } catch (error) {
+        console.error('Add Meal Error:', error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+
+}
+
+module.exports.todayMeal = async (req, res) => {
+    const { userId, mealType, date } = req.body;
+
+    const userIdObj = new mongoose.Types.ObjectId(userId);
+    const targetDate = new Date(date);
+    const nextDate = new Date(targetDate);
+    nextDate.setDate(targetDate.getDate() + 1);
+    
+    console.log("Recherche avec : ", {
+        userId: userIdObj,
+        mealType,
+        dateRange: { $gte: targetDate, $lt: nextDate }
+    });
+    
+    try { 
+        const meals = await Meal.find({
+            userId: userIdObj,
+            mealType: mealType,
+            date: { $gte: targetDate, $lt: nextDate }
+        });
+    
+        console.log("Résultat MongoDB:", meals);
+        res.json(meals);
+    } catch (err) {
+        console.error("Erreur dans getTodayMeals:", err);
+        res.status(500).json({ error: "Erreur serveur" });
+    }
+    
+};
+
+

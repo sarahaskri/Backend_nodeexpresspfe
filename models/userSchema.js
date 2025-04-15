@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const Meal = require('./mealSchema');
 
 const userSchema = new mongoose.Schema({
     firstname: { type: String },
@@ -25,8 +26,13 @@ const userSchema = new mongoose.Schema({
     age: { type: Number }, // Correction : âge devrait être un Number
     height: { type: Number },
     weight: { type: Number },
-    count: { type: Number, default: 1 } // Moved inside the schema
-}, { timestamps: true });
+    count: { type: Number, default: 1 } ,// Moved inside the schema
+    meals: [{  // Liste des repas
+      mealType: String,
+      mealName: String,
+      date: String,
+      time: String
+    }]}, { timestamps: true }); 
 //etat : Boolean
 
 
