@@ -289,33 +289,36 @@ module.exports.addMeal = async (req, res) => {
 }
 
 module.exports.todayMeal = async (req, res) => {
-    const { userId, mealType, date } = req.body;
-
-    const userIdObj = new mongoose.Types.ObjectId(userId);
-    const targetDate = new Date(date);
-    const nextDate = new Date(targetDate);
-    nextDate.setDate(targetDate.getDate() + 1);
-    
-    console.log("Recherche avec : ", {
-        userId: userIdObj,
-        mealType,
-        dateRange: { $gte: targetDate, $lt: nextDate }
-    });
-    
-    try { 
-        const meals = await Meal.find({
-            userId: userIdObj,
-            mealType: mealType,
-            date: { $gte: targetDate, $lt: nextDate }
-        });
-    
-        console.log("Résultat MongoDB:", meals);
-        res.json(meals);
-    } catch (err) {
-        console.error("Erreur dans getTodayMeals:", err);
-        res.status(500).json({ error: "Erreur serveur" });
+    try {
+      const { userId, mealType } = req.body;
+  
+      if (!userId || !mealType) {
+        return res.status(400).json({ message: "userId et mealType sont requis" });
+      }
+  
+      // format d’aujourd’hui : YYYY-MM-DD
+      const today = new Date().toISOString().split('T')[0];
+  
+      // Récupérer tous les repas de cet utilisateur et type de repas
+      const allMeals = await Meal.find({
+        userId: userId,
+        mealType: { $regex: mealType, $options: 'i' }
+      });
+  
+      // Filtrer les repas dont la date correspond à aujourd’hui
+      const todayMeals = allMeals.filter(meal => {
+        const mealDate = new Date(meal.date).toISOString().split('T')[0];
+        return mealDate === today;
+      });
+  
+      if (todayMeals.length === 0) {
+        return res.status(404).json({ message: "Aucun repas trouvé pour aujourd'hui" });
+      }
+  
+      res.status(200).json({ count: todayMeals.length, meals: todayMeals });
+  
+    } catch (error) {
+      res.status(500).json({ message: error.message });
     }
-    
-};
-
-
+  };
+  
