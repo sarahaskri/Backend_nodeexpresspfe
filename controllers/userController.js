@@ -322,3 +322,48 @@ module.exports.todayMeal = async (req, res) => {
     }
   };
   
+  //////////////// for admin //////////////////////
+  exports.addMealByAdmin = async (req, res) => {
+    console.log('Reçu :', req.body);
+
+    try {
+      const meal = new Meal(req.body);
+      await meal.save();
+      res.status(201).json(meal);
+    } catch (err) {
+        console.error("Erreur lors de l'ajout :", err);
+        res.status(400).json({ error: err.message });
+      }
+  };
+
+  // 🔁 Update Meal
+exports.updateMealByAdmin = async (req, res) => {
+    console.log('Reçu :', req.body);
+    try {
+      const meal = await Meal.findByIdAndUpdate(req.params.id, req.body, { new: true });
+      res.json(meal);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };
+
+  // ❌ Delete Meal
+exports.deleteMealByAdmin = async (req, res) => {   
+    try {
+      await Meal.findByIdAndDelete(req.params.id);
+      res.json({ message: 'Meal deleted' });
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+
+  };
+
+  // 📄 Get All Meals
+exports.getAllMealsByAdmin = async (req, res) => {
+    try {
+      const meals = await Meal.find();
+      res.json(meals);
+    } catch (err) {
+      res.status(400).json({ error: err.message });
+    }
+  };

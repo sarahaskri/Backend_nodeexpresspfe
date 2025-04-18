@@ -17,6 +17,10 @@ router.put('/addProfileInformation', userController.addProfileInformation);
 router.post('/handleGoogleSignIn', userController.handleGoogleSignIn);
 router.post('/addMeal', userController.addMeal);
 router.post('/todayMeal', userController.todayMeal);
+router.post('/addMealByAdmin',userController.addMealByAdmin);
+router.put('/updateMealByAdmin/:id',userController.updateMealByAdmin);
+router.delete('/deleteMealByAdmin/:id',userController.deleteMealByAdmin);
+router.get('/getAllMealsByAdmin', userController.getAllMealsByAdmin);
 
  
 

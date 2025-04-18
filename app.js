@@ -4,7 +4,9 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
-const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal} = require('./controllers/userController'); // Importation du contrôleur
+const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,addMealByAdmin,
+  updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin
+} = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
 const{connectToMongoDb} = require("./config/db");
@@ -41,6 +43,10 @@ app.post('/api/users/GoogleSignIn', (req, res) => {
 });
 app.post('/api/users/addMeal',addMeal);
 app.post('/api/users/todayMeal', todayMeal);
+app.post('/api/users/addMealByAdmin',addMealByAdmin);
+app.put('/api/users/updateMealByAdmin/:id',updateMealByAdmin);
+app.delete('/api/users/deleteMealByAdmin/:id',deleteMealByAdmin);
+app.get('/api/users/getAllMealsByAdmin', getAllMealsByAdmin);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404)); 
