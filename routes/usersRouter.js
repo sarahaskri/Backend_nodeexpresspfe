@@ -21,6 +21,7 @@ router.post('/addMealByAdmin',userController.addMealByAdmin);
 router.put('/updateMealByAdmin/:id',userController.updateMealByAdmin);
 router.delete('/deleteMealByAdmin/:id',userController.deleteMealByAdmin);
 router.get('/getAllMealsByAdmin', userController.getAllMealsByAdmin);
+router.get('/getMealsByType', userController.getMealsByType);
 
  
 

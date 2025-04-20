@@ -200,7 +200,7 @@ module.exports.loginUser = async (req, res) => {
         console.log("Connexion réussie pour l'utilisateur:", email); // Log pour débogage
         return res.status(200).json({
             message: "Connexion réussie",
-            user: { email: user.email, firstname: user.firstname },
+            user: { email: user.email, firstname: user.firstname ,role :user.role, _id: user._id },
         });
     } catch (error) {
         console.error("Erreur serveur:", error); // Log pour débogage
@@ -365,5 +365,27 @@ exports.getAllMealsByAdmin = async (req, res) => {
       res.json(meals);
     } catch (err) {
       res.status(400).json({ error: err.message });
+    }
+  };
+  // userController.js
+// Mauvais : utilisation de req.body pour une requête GET
+exports.getMealsByType = async (req, res) => {
+    try {
+      // Correction : utiliser req.query pour les paramètres GET
+      const { mealType } = req.query;
+      
+      // Validation du paramètre
+      if (!mealType) {
+        return res.status(400).json({ error: "Le paramètre mealType est requis" });
+      }
+  
+      const meals = await Meal.find({ mealType, 
+        role:'admin' 
+       });
+      res.json(meals);
+      console.log("Repas récupérés avec succès :", meals); 
+    } catch (err) {
+      console.error("Erreur getMealsByType :", err);
+      res.status(500).json({ error: "Erreur serveur lors de la récupération des repas" });
     }
   };

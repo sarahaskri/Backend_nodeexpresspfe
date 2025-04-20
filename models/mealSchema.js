@@ -15,6 +15,7 @@ const MealSchema = new mongoose.Schema({
         Proteins: String,
         Carbs: String
     },
+    role : { type: String, required: false },
     imagePath: String,
     date: { type: String, required: false },
     time: { type: String, required: false }
