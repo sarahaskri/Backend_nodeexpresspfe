@@ -1,12 +1,14 @@
 const userSchema = require("../models/userSchema");
 const Meal = require("../models/mealSchema");
+const Workout = require("../models/workoutSchema");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const app = express();
 app.use(express.json());
 const mongoose = require('mongoose');
-const ObjectId = mongoose.Types.ObjectId;
+
+
 
 module.exports.addUserAdherent = async (req, res) => {
     try {
@@ -257,9 +259,9 @@ module.exports.handleGoogleSignIn = async (req, res) => {
 
 
 module.exports.addMeal = async (req, res) => {
-    const { userId, mealType, mealName, date, time } = req.body;
-
-    if (!userId || !mealType || !mealName || !date || !time) {
+    const { userId, mealType, mealName, date, time ,imagePath,nutrition = {}} = req.body;
+ console.log("Received mealnpm run dev data:", req.body); 
+    if (!userId || !mealType || !mealName || !date || !time || !imagePath || !nutrition) {
         return res.status(400).json({ message: 'Missing fields' });
     }
 
@@ -267,14 +269,22 @@ module.exports.addMeal = async (req, res) => {
         // Vérifier si l'utilisateur existe
         const user = await userSchema.findById(userId);
         if (!user) return res.status(404).json({ message: 'User not found' });
-
+ ////nutrition
+ const cleanedNutrition = {
+    Calories: String(nutrition?.Calories || '0').replace(/[^\d]/g, ''),
+    Fats: String(nutrition?.Fats || '0').replace(/[^\d]/g, ''),
+    Proteins: String(nutrition?.Proteins || '0').replace(/[^\d]/g, ''),
+    Carbs: String(nutrition?.Carbs || '0').replace(/[^\d]/g, '')
+};
         // Créer un nouveau repas dans le modèle DailyMeal
         const newMeal = new Meal({
             userId,
             mealType,
             mealName,
             date,
-            time
+            time,
+            imagePath,
+            nutrition: cleanedNutrition,
         });
 
         // Sauvegarder le repas dans la collection DailyMeals
@@ -302,7 +312,8 @@ module.exports.todayMeal = async (req, res) => {
       // Récupérer tous les repas de cet utilisateur et type de repas
       const allMeals = await Meal.find({
         userId: userId,
-        mealType: { $regex: mealType, $options: 'i' }
+        mealType: { $regex: mealType, $options: 'i' },
+        imagePath: { $exists: true } 
       });
   
       // Filtrer les repas dont la date correspond à aujourd’hui
@@ -389,3 +400,81 @@ exports.getMealsByType = async (req, res) => {
       res.status(500).json({ error: "Erreur serveur lors de la récupération des repas" });
     }
   };
+
+// Ajouter un nouvel exercice
+ exports.addExercise = async (req, res) => {
+  try {
+    const {
+      userId,
+      image,
+      nameOfExercise,
+      info,
+      description,
+      nameOfWorkout,
+      selectedDifficulty,
+      burnedCalories,
+      date,
+      time,
+    } = req.body;
+
+    if (
+      !userId || !image || !nameOfExercise || !info || !date || !time ||
+      !description || !nameOfWorkout || !selectedDifficulty || 
+      burnedCalories  === undefined
+    ) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    const newWorkout = new Workout({
+      userId,
+      image,
+      nameOfExercise,
+      info,
+      description,
+      nameOfWorkout,
+      selectedDifficulty,
+      burnedCalories,
+      date,
+      time,
+    });
+
+    await newWorkout.save();
+
+    res.status(200).json({ message: 'Exercise added successfully', workout: newWorkout });
+  } catch (error) {
+    console.error('Error adding exercise:', error);
+    res.status(500).json({ message: 'Server Error' });
+  }
+};
+
+exports.getWorkoutsByType = async (req, res) => {
+  try {
+    console.log("🔍 Requête pour:", req.query.Workout);
+    
+    const workoutType = req.query.Workout; // Récupération directe
+    
+    if (!workoutType) {
+      return res.status(400).json({ error: "Paramètre 'Workout' requis" });
+    }
+
+    // Requête avec regex insensible à la casse
+    const workouts = await Workout.find({
+      nameOfWorkout: { 
+        $regex: new RegExp(`^${workoutType}$`, 'i') 
+      }
+    });
+
+    if (workouts.length === 0) {
+      return res.status(404).json({ message: "Aucun exercice trouvé" });
+    }
+
+    res.json(workouts);
+    
+  } catch (err) {
+    console.error("🔥 Erreur:", err);
+    res.status(500).json({ 
+      error: "Erreur serveur",
+      details: process.env.NODE_ENV === 'development' ? err.message : null
+    });
+  }
+};

@@ -5,7 +5,8 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 const cors = require('cors');
 const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,addMealByAdmin,
-  updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin,getMealsByType
+  updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin,getMealsByType,addExercise,
+    getWorkoutsByType
 } = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
@@ -48,6 +49,8 @@ app.put('/api/users/updateMealByAdmin/:id',updateMealByAdmin);
 app.delete('/api/users/deleteMealByAdmin/:id',deleteMealByAdmin);
 app.get('/api/users/getAllMealsByAdmin', getAllMealsByAdmin);
 app.get('/api/users/getMealsByType', getMealsByType);
+app.post('/api/users/addExercise', addExercise);
+app.get('/api/users/getWorkoutsByType', getWorkoutsByType);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404)); 
