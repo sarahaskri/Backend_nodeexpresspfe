@@ -29,5 +29,3 @@ exports.sendNotification = async (req, res) => {
         return res.status(500).send({ message: "Error sending notification", error });
     }
 };
-
-printf("Firebase push notification initialized successfully");
