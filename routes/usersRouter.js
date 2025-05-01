@@ -24,8 +24,8 @@ router.get('/getAllMealsByAdmin', userController.getAllMealsByAdmin);
 router.get('/getMealsByType', userController.getMealsByType);
 router.post('/addExercise', userController.addExercise);
 router.get('/getWorkoutsByType', userController.getWorkoutsByType);
-
- 
+router.delete('/deletedWorkout/:id', userController.deletedWorkout);
+router.post('/postfornotifications', userController.postfornotifications);
 
 module.exports = router; 
   

@@ -478,3 +478,48 @@ exports.getWorkoutsByType = async (req, res) => {
     });
   }
 };
+ 
+exports.deletedWorkout= async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deletedWorkout = await Workout.findByIdAndDelete(id);
+
+    if (!deletedWorkout) {
+      return res.status(404).json({ message: 'Workout non trouvé' });
+    }
+
+    res.status(200).json({ message: 'Workout supprimé avec succès' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression :', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+
+exports.postfornotifications= async (req, res) => {
+  const { userId, fcmToken } = req.body;
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+
+  try {
+    const workout = await Workout.findOne({ userId, date: today });
+
+    if (workout) {
+      const message = {
+        notification: {
+          title: "Entraînement du jour 💪",
+          body: `Tu as "${workout.nameOfExercise}" aujourd'hui à ${workout.time}`
+        },
+        token: fcmToken,
+      };
+
+      await admin.messaging().send(message);
+      return res.status(200).send('Notification envoyée');
+    }
+
+    res.status(200).send('Pas d’exercice aujourd’hui');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Erreur serveur');
+  }
+};
