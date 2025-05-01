@@ -30,4 +30,4 @@ exports.sendNotification = async (req, res) => {
     }
 };
 
-        
+printf("Firebase push notification initialized successfully");
