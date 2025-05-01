@@ -21,7 +21,7 @@ exports.sendNotification = async (req, res) => {
                 orderDate: "2023-10-10"
             },
             token: req.body.fcm_Token // Token du client
-        };
+        };    
 
         const response = await admin.messaging().send(message);
         return res.status(200).send({ message: "Notification sent successfully", response });
