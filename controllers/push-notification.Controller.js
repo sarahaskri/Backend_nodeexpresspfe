@@ -1,5 +1,5 @@
 const admin = require('firebase-admin');
-const serviceAccount = require('../config/push-notification-key.json');
+const serviceAccount = require('../functions/serviceAccountKey.json'); 
 
 
 // Initialisation de l'app Firebase (uniquement une fois)
