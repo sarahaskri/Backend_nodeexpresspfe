@@ -4,9 +4,6 @@ if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
   }
   
  
-
- 
-
 // Initialisation de l'app Firebase (uniquement une fois)
 if (!admin.apps.length) {
     admin.initializeApp({
