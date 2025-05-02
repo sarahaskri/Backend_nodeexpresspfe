@@ -128,4 +128,8 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
-.env"functions/serviceAccountKey.json" 
+
+# Dans .gitignore (déjà donné) :
+serviceAccountKey.json
+functions/serviceAccountKey.json
+config/firebase-key.json
