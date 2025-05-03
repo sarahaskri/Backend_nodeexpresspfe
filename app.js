@@ -33,6 +33,8 @@ app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/os', osRouter); 
 app.use('/api/users', usersRouter);
+// Routes API for notifications
+app.use("/apinot", require("./routes/app.routes"));
 
 app.post('/api/users/register', addUserAdherent);
 app.post('/api/users/login', loginUser);
