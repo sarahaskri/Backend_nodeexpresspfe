@@ -6,7 +6,7 @@ var logger = require('morgan');
 const cors = require('cors');
 const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,addMealByAdmin,
   updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin,getMealsByType,addExercise,
-    getWorkoutsByType,deletedWorkout ,postfornotifications
+    getWorkoutsByType,deletedWorkout ,postfornotifications,calculate_goal
 } = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
@@ -55,6 +55,7 @@ app.post('/api/users/addExercise', addExercise);
 app.get('/api/users/getWorkoutsByType', getWorkoutsByType);
 app.delete('/api/users/deletedWorkout/:id', deletedWorkout);
 app.post('/api/users/postfornotifications', postfornotifications);
+app.post('/api/users/calculate_goal', calculate_goal);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
   next(createError(404)); 

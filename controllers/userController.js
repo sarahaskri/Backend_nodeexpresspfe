@@ -1,14 +1,13 @@
 const userSchema = require("../models/userSchema");
 const Meal = require("../models/mealSchema");
 const Workout = require("../models/workoutSchema");
+const Goal = require("../models/goalSchema");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
 const express = require('express');
 const app = express();
 app.use(express.json());
 const mongoose = require('mongoose');
-
-
 
 module.exports.addUserAdherent = async (req, res) => {
     try {
@@ -236,9 +235,9 @@ module.exports.handleGoogleSignIn = async (req, res) => {
     try {
         const { uid, email, firstName, lastName } = req.body;
 
-        let user = await user.findOne({ email });
+        let user = await userSchema.findOne({ email });
         if (!user) {
-            user = new User({
+            user = new userSchema({
                 uid,
                 email,
                 firstname: firstName,
@@ -521,5 +520,49 @@ exports.postfornotifications= async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).send('Erreur serveur');
+  }
+};
+///////////// GOAL CONTROLLER //
+
+
+exports.calculate_goal = async (req, res) => {
+  try {
+    const { userId, goal } = req.body;
+   console.log("Received goal data:", req.body); 
+    const user = await userSchema.findById(userId);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+
+    const weight = user.weight;
+    const height = user.height / 100;
+    const imc = weight / (height * height);
+
+    let targetWeight;
+    let message = '';
+
+    if (goal === 'lose weight') {
+      targetWeight = 24.9 * (height * height);
+      const toLose = weight - targetWeight;
+      message = `Pour un IMC normal (24.9), vous devez perdre environ ${toLose.toFixed(1)} kg.`;
+    } else if (goal === 'gain weight') {
+      targetWeight = 18.5 * (height * height);
+      const toGain = targetWeight - weight;
+      message = `Pour un IMC normal (18.5), vous devez prendre environ ${toGain.toFixed(1)} kg.`;
+    } else if (goal === 'build muscle') {
+      message = `Votre IMC est ${imc.toFixed(1)}. Concentrez-vous sur un excédent calorique contrôlé et l'entraînement.`;
+    }
+
+    // Enregistrer le goal AVANT de répondre
+    const newGoal = new Goal({
+      userId,
+      goal,
+      targetWeight,
+      imc,
+    });
+    await newGoal.save();
+
+    res.json({ imc: imc.toFixed(1), message });
+
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur serveur' });
   }
 };

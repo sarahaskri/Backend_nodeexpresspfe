@@ -26,6 +26,6 @@ router.post('/addExercise', userController.addExercise);
 router.get('/getWorkoutsByType', userController.getWorkoutsByType);
 router.delete('/deletedWorkout/:id', userController.deletedWorkout);
 router.post('/postfornotifications', userController.postfornotifications);
-
+router.post('/calculate_goal', userController.calculate_goal)
 module.exports = router; 
   
