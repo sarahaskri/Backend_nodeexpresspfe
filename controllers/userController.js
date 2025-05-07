@@ -302,7 +302,7 @@ module.exports.todayMeal = async (req, res) => {
       const { userId, mealType } = req.body;
   
       if (!userId || !mealType) {
-        return res.status(400).json({ message: "userId et mealType sont requis" });
+        return res.status(400).json({ message: "userId and mealType are requeired" });
       }
   
       // format d’aujourd’hui : YYYY-MM-DD
@@ -322,7 +322,7 @@ module.exports.todayMeal = async (req, res) => {
       });
   
       if (todayMeals.length === 0) {
-        return res.status(404).json({ message: "Aucun repas trouvé pour aujourd'hui" });
+        return res.status(404).json({ message: "No meals found for today" });
       }
   
       res.status(200).json({ count: todayMeals.length, meals: todayMeals });
@@ -334,21 +334,21 @@ module.exports.todayMeal = async (req, res) => {
   
   //////////////// for admin //////////////////////
   exports.addMealByAdmin = async (req, res) => {
-    console.log('Reçu :', req.body);
+    console.log('Received :', req.body);
 
     try {
       const meal = new Meal(req.body);
       await meal.save();
       res.status(201).json(meal);
     } catch (err) {
-        console.error("Erreur lors de l'ajout :", err);
+        console.error("Error adding :", err);
         res.status(400).json({ error: err.message });
       }
   };
 
   // 🔁 Update Meal
 exports.updateMealByAdmin = async (req, res) => {
-    console.log('Reçu :', req.body);
+    console.log('Received :', req.body);
     try {
       const meal = await Meal.findByIdAndUpdate(req.params.id, req.body, { new: true });
       res.json(meal);
@@ -386,17 +386,17 @@ exports.getMealsByType = async (req, res) => {
       
       // Validation du paramètre
       if (!mealType) {
-        return res.status(400).json({ error: "Le paramètre mealType est requis" });
+        return res.status(400).json({ error: "The mealType parameter is required" });
       }
   
       const meals = await Meal.find({ mealType, 
         role:'admin' 
        });
       res.json(meals);
-      console.log("Repas récupérés avec succès :", meals); 
+      console.log("Meals successfully collected :", meals); 
     } catch (err) {
-      console.error("Erreur getMealsByType :", err);
-      res.status(500).json({ error: "Erreur serveur lors de la récupération des repas" });
+      console.error("Error getMealsByType :", err);
+      res.status(500).json({ error: "Server error when retrieving meals" });
     }
   };
 
@@ -470,13 +470,13 @@ exports.deletedWorkout= async (req, res) => {
     const deletedWorkout = await Workout.findByIdAndDelete(id);
 
     if (!deletedWorkout) {
-      return res.status(404).json({ message: 'Workout non trouvé' });
+      return res.status(404).json({ message: 'Workout not found' });
     }
 
-    res.status(200).json({ message: 'Workout supprimé avec succès' });
+    res.status(200).json({ message: 'Workout successfully deleted' });
   } catch (error) {
-    console.error('Erreur lors de la suppression :', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('Error while deleting:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -491,20 +491,20 @@ exports.postfornotifications= async (req, res) => {
     if (workout) {
       const message = {
         notification: {
-          title: "Entraînement du jour 💪",
-          body: `Tu as "${workout.nameOfExercise}" aujourd'hui à ${workout.time}`
+          title: " Today's training ",
+          body: `you have "${workout.nameOfExercise}" today at ${workout.time}`
         },
         token: fcmToken,
       };
 
       await admin.messaging().send(message);
-      return res.status(200).send('Notification envoyée');
+      return res.status(200).send('Notification sent');
     }
 
-    res.status(200).send('Pas d’exercice aujourd’hui');
+    res.status(200).send('No exercise today');
   } catch (error) {
     console.error(error);
-    res.status(500).send('Erreur serveur');
+    res.status(500).send('Server error');
   }
 };
 ///////////// GOAL CONTROLLER //
@@ -579,3 +579,31 @@ exports.getGoalByUserId = async (req, res) => {
   }
 };
 
+
+exports.addGoogleUser = async (req, res) => {
+  const { uid, email, name ,firstName,lastName} = req.body;
+  
+  try {
+  
+    console.log("userId", uid); 
+    // Vérifie si l'utilisateur existe déjà
+    let user = await userSchema.findOne({ userId:uid });
+
+    if (!user) {
+      // Crée un nouvel utilisateur
+      user = new userSchema({
+        firstname: firstName,
+        lastname: lastName,
+        userId :uid,
+        email,
+        name,
+        role: 'adherent' // ou 'admin' selon ton cas
+      });
+      await user.save();
+    }
+
+    res.status(200).json({ message: "Google user successfully added", user });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

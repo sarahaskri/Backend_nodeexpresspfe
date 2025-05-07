@@ -28,5 +28,6 @@ router.delete('/deletedWorkout/:id', userController.deletedWorkout);
 router.post('/postfornotifications', userController.postfornotifications);
 router.post('/calculate_goal', userController.calculate_goal);
 router.get('/getGoal/:userId', userController.getGoalByUserId);
+router.post('addGoogleUser', userController.addGoogleUser);
 module.exports = router; 
   

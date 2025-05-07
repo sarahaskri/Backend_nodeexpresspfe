@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     lastname: { type: String },
     password: {
         type: String,
-        required: true,
+        required: false,
         minlength: 8,
         match: /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
     },
