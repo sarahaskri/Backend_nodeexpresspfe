@@ -447,36 +447,21 @@ exports.getMealsByType = async (req, res) => {
 };
 
 exports.getWorkoutsByType = async (req, res) => {
+  const { userId, type } = req.params;
+
   try {
-    console.log("🔍 Requête pour:", req.query.Workout);
-    
-    const workoutType = req.query.Workout; // Récupération directe
-    
-    if (!workoutType) {
-      return res.status(400).json({ error: "Paramètre 'Workout' requis" });
+    const workouts = await Workout.find({ userId, nameOfWorkout:type });
+
+    if (!workouts.length) {
+      return res.status(404).json({ message: 'No workouts found for this user and type' });
     }
 
-    // Requête avec regex insensible à la casse
-    const workouts = await Workout.find({
-      nameOfWorkout: { 
-        $regex: new RegExp(`^${workoutType}$`, 'i') 
-      }
-    });
-
-    if (workouts.length === 0) {
-      return res.status(404).json({ message: "Aucun exercice trouvé" });
-    }
-
-    res.json(workouts);
-    
-  } catch (err) {
-    console.error("🔥 Erreur:", err);
-    res.status(500).json({ 
-      error: "Erreur serveur",
-      details: process.env.NODE_ENV === 'development' ? err.message : null
-    });
+    res.json({ workouts });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
   }
 };
+
  
 exports.deletedWorkout= async (req, res) => {
   const { id } = req.params;
@@ -527,7 +512,7 @@ exports.postfornotifications= async (req, res) => {
 
 exports.calculate_goal = async (req, res) => {
   try {
-    const { userId, goal } = req.body;
+    const { userId, goal } = req.body; 
    console.log("Received goal data:", req.body); 
     const user = await userSchema.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
@@ -558,11 +543,39 @@ exports.calculate_goal = async (req, res) => {
       targetWeight,
       imc,
     });
+ 
     await newGoal.save();
 
-    res.json({ imc: imc.toFixed(1), message });
+    res.json({ imc: imc.toFixed(1), message, goal});
 
   } catch (err) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
+// getGoalByUserId.js
+exports.getGoalByUserId = async (req, res) => {
+  const { userId } = req.params;
+  console.log("Received userId:", userId); // Log pour débogage
+  try {
+    // Recherche de l'entrée de goal associée à l'userId
+    const goalEntry = await Goal.findOne({ userId }); // ou Goal.findOne({ user: userId }) selon ton schema
+    
+    // Vérification si aucune donnée n'est trouvée pour ce userId
+    if (!goalEntry) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+
+    // Vérification si la clé goal existe dans l'entrée
+    if (!goalEntry.goal) {
+      return res.status(400).json({ message: 'Goal data is missing' });
+    }
+
+    // Retour des données de goal
+    res.json({ goal: goalEntry.goal });
+  } catch (error) {
+    // Gestion des erreurs serveur
+    console.error(error);  // Log pour aider au debug
+    res.status(500).json({ message: 'Server error' ,error: error.message});
+  }
+};
+

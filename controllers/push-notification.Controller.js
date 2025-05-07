@@ -32,8 +32,8 @@ exports.sendNotification = async (req, res) => {
     if (workouts.length > 0) {
       const message = {
         notification: {
-          title: "Rappel d'entraînement",
-          body: `Vous avez ${workouts.length} exercices prévus aujourd'hui!`
+          title: " Training reminder ",
+          body: `You have ${workouts.length} exercises planned for today !`
         },
         token: fcmToken
       };

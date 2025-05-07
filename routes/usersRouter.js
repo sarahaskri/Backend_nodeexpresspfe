@@ -23,9 +23,10 @@ router.delete('/deleteMealByAdmin/:id',userController.deleteMealByAdmin);
 router.get('/getAllMealsByAdmin', userController.getAllMealsByAdmin);
 router.get('/getMealsByType', userController.getMealsByType);
 router.post('/addExercise', userController.addExercise);
-router.get('/getWorkoutsByType', userController.getWorkoutsByType);
+router.get('/getWorkoutsByType/:userId/:type', userController.getWorkoutsByType);
 router.delete('/deletedWorkout/:id', userController.deletedWorkout);
 router.post('/postfornotifications', userController.postfornotifications);
-router.post('/calculate_goal', userController.calculate_goal)
+router.post('/calculate_goal', userController.calculate_goal);
+router.get('/getGoal/:userId', userController.getGoalByUserId);
 module.exports = router; 
   
