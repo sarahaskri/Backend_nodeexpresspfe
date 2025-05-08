@@ -29,5 +29,6 @@ router.post('/postfornotifications', userController.postfornotifications);
 router.post('/calculate_goal', userController.calculate_goal);
 router.get('/getGoal/:userId', userController.getGoalByUserId);
 router.post('addGoogleUser', userController.addGoogleUser);
+router.post('/login_with_google', userController.login_with_google);
 module.exports = router; 
   

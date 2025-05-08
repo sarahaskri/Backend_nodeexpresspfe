@@ -22,7 +22,7 @@ exports.sendNotification = async (req, res) => {
 
     // Date du jour au format YYYY-MM-DD
     const today = new Date().toISOString().split('T')[0];
-
+  
     // Recherche des workouts
     const workouts = await Workout.find({
       userId: userId,

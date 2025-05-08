@@ -607,3 +607,22 @@ exports.addGoogleUser = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.login_with_google = async (req, res) => {
+  const { email} = req.body;
+  try {
+  
+    console.log("email", email); 
+    // Vérifie si l'utilisateur existe déjà
+    let user = await userSchema.findOne({ email });
+
+    if (user) {
+      res.status(200).json({ email:user.email,userId:user._id});
+    }
+    else {
+      res.status(500).json({ message: "User not found" });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
