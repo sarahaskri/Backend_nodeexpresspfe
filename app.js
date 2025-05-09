@@ -7,7 +7,7 @@ const cors = require('cors');
 const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,addMealByAdmin,
   updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin,getMealsByType,addExercise,
     getWorkoutsByType,deletedWorkout ,postfornotifications,calculate_goal,getGoalByUserId,
-    addGoogleUser,login_with_google
+    addGoogleUser,login_with_google,getAdherentById,update,updatePassword
 } = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
@@ -60,6 +60,9 @@ app.post('/api/users/calculate_goal', calculate_goal);
 app.get('/api/users/getGoal', getGoalByUserId);
 app.post('/api/users/addGoogleUser', addGoogleUser);
 app.post('/api/users/login_with_google', login_with_google);
+app.get('/api/users/getAdherentById/:id', getAdherentById);
+app.put('/api/users/update/:id', update);
+app.put('/api/users/updatePassword/:id', updatePassword);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {

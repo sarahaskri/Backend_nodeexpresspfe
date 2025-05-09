@@ -30,5 +30,9 @@ router.post('/calculate_goal', userController.calculate_goal);
 router.get('/getGoal/:userId', userController.getGoalByUserId);
 router.post('addGoogleUser', userController.addGoogleUser);
 router.post('/login_with_google', userController.login_with_google);
+router.get('/getAdherentById/:id', userController.getAdherentById);
+router.put('update/:id',userController.update);
+router.put('updatePassword/:id',userController.updatePassword);
+
 module.exports = router; 
   

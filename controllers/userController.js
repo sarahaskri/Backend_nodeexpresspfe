@@ -128,7 +128,7 @@ exports.updateUserById = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: "Utilisateur introuvable" });
         }
-
+   
         // Vérifier si l'email est modifié et déjà utilisé
         if (updates.email && updates.email !== user.email) {
             const existingUser = await userSchema.findOne({ email: updates.email });
@@ -624,5 +624,83 @@ exports.login_with_google = async (req, res) => {
     }
   } catch (err) {
     res.status(500).json({ error: err.message });
+  }
+};
+
+exports.getAdherentById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await userSchema.findById(id);
+
+    if (!user || user.role !== 'adherent') {
+      return res.status(404).json({ message: 'Adhérent non trouvé' });
+    }
+
+    res.status(200).json({
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      age: user.age,
+      weight: user.weight,
+      height: user.height,
+      password: user.password,
+    }); 
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l’adhérent:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+exports.update= async (req, res) => {
+  const { id } = req.params;
+  const { firstname, lastname, email, weight, height, age, goal } = req.body;
+
+  // Validation email
+  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  if (!emailRegex.test(email)) {
+    return res.status(400).json({ error: 'Invalid email format' });
+  }
+
+  try {
+    await userSchema.findByIdAndUpdate(id, { firstname, lastname, email, weight, height, age, goal });
+    res.status(200).json({ message: 'Profile updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update profile' });
+  }
+};
+
+exports.updatePassword = async (req, res) => {
+  const { id } = req.params;
+  const { oldPassword, newPassword } = req.body;
+  
+  // Validation nouveau mot de passe
+  if (newPassword.length < 6) {
+    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+  }
+
+  try {
+    const user = await userSchema.findById(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    user.password = oldPassword;
+    // Vérifier l'ancien mot de passe
+    const isMatch =  await bcrypt.compare(newPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ error: 'Old password is incorrect' });
+    }
+
+    // Hacher le nouveau mot de passe
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+    // Mettre à jour le mot de passe
+    userSchema.password = hashedPassword;
+    await userSchema.save();
+
+    res.status(200).json({ message: 'Password updated successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update password' });
   }
 };
