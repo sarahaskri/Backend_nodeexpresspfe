@@ -14,6 +14,7 @@ const goalSchema = new mongoose.Schema({
     type: Number,
     required: false
   },
+  initialWeight: { type: Number, required: false },
   imc: {
     type: Number,
     required: false

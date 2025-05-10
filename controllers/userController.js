@@ -512,8 +512,8 @@ exports.postfornotifications= async (req, res) => {
 
 exports.calculate_goal = async (req, res) => {
   try {
-    const { userId, goal } = req.body; 
-   console.log("Received goal data:", req.body); 
+    const { userId, goal } = req.body;
+    console.log("Received goal data:", req.body);
     const user = await userSchema.findById(userId);
     if (!user) return res.status(404).json({ error: 'User not found' });
 
@@ -536,18 +536,17 @@ exports.calculate_goal = async (req, res) => {
       message = `Votre IMC est ${imc.toFixed(1)}. Concentrez-vous sur un excédent calorique contrôlé et l'entraînement.`;
     }
 
-    // Enregistrer le goal AVANT de répondre
     const newGoal = new Goal({
       userId,
       goal,
       targetWeight,
+      initialWeight: weight, // Save the initial weight when the goal is set
       imc,
     });
- 
+
     await newGoal.save();
 
-    res.json({ imc: imc.toFixed(1), message, goal});
-
+    res.json({ imc: imc.toFixed(1), message, goal });
   } catch (err) {
     res.status(500).json({ error: 'Erreur serveur' });
   }
@@ -669,38 +668,70 @@ exports.update= async (req, res) => {
     res.status(500).json({ error: 'Failed to update profile' });
   }
 };
-
 exports.updatePassword = async (req, res) => {
   const { id } = req.params;
   const { oldPassword, newPassword } = req.body;
-  
-  // Validation nouveau mot de passe
-  if (newPassword.length < 6) {
-    return res.status(400).json({ error: 'New password must be at least 6 characters' });
+
+  if (newPassword.length < 8) {
+    return res.status(400).json({ error: 'New password must be at least 8 characters' });
   }
 
   try {
-    const user = await userSchema.findById(id);
+    const user = await userSchema.findById(id).select('+password'); // Correction ici
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    user.password = oldPassword;
-    // Vérifier l'ancien mot de passe
-    const isMatch =  await bcrypt.compare(newPassword, user.password);
+
+    const isMatch = await bcrypt.compare(oldPassword, user.password);
     if (!isMatch) {
       return res.status(400).json({ error: 'Old password is incorrect' });
     }
 
-    // Hacher le nouveau mot de passe
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(newPassword, salt);
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
+    }
 
-    // Mettre à jour le mot de passe
-    userSchema.password = hashedPassword;
-    await userSchema.save();
+    user.password = newPassword;
+    await user.save();
 
     res.status(200).json({ message: 'Password updated successfully' });
   } catch (error) {
+    console.error('Password update error:', error); // Logging ajouté
     res.status(500).json({ error: 'Failed to update password' });
+  }
+}; 
+exports.deleteAdherent = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await userSchema.findByIdAndDelete(id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    res.status(200).json({ message: 'User deleted successfully' });
+  } catch (error) {
+    console.error('Delete user error:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+};
+
+exports.getGoal_targetWieght = async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const goalEntry = await Goal.findOne({ userId });
+    if (!goalEntry) {
+      return res.status(404).json({ message: 'Goal not found' });
+    }
+    if (!goalEntry.goal) {
+      return res.status(400).json({ message: 'Goal data is missing' });
+    }
+    res.status(200).json({
+      goal: goalEntry.goal,
+      targetWeight: goalEntry.targetWeight,
+      initialWeight: goalEntry.initialWeight, // Include initialWeight in response
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

@@ -33,6 +33,8 @@ router.post('/login_with_google', userController.login_with_google);
 router.get('/getAdherentById/:id', userController.getAdherentById);
 router.put('update/:id',userController.update);
 router.put('updatePassword/:id',userController.updatePassword);
+router.delete('/deleteAdherent/:id', userController.deleteAdherent);
+router.get('/getGoal_targetWieght/:userId', userController.getGoal_targetWieght);
 
 module.exports = router; 
   
