@@ -1,6 +1,7 @@
 const userSchema = require("../models/userSchema");
 const Meal = require("../models/mealSchema");
 const Workout = require("../models/workoutSchema");
+const Progression = require("../models/progressionSchema");
 const Goal = require("../models/goalSchema");
 const bcrypt = require("bcrypt");
 const jwt = require('jsonwebtoken');
@@ -8,6 +9,8 @@ const express = require('express');
 const app = express();
 app.use(express.json());
 const mongoose = require('mongoose');
+const User = require("../models/userSchema");
+
 
 module.exports.addUserAdherent = async (req, res) => {
     try {
@@ -514,7 +517,8 @@ exports.calculate_goal = async (req, res) => {
   try {
     const { userId, goal } = req.body;
     console.log("Received goal data:", req.body);
-    const user = await userSchema.findById(userId);
+    //const user = await userSchema.findById(userId);
+    const user = await userSchema.findOne({ _id: userId });
     if (!user) return res.status(404).json({ error: 'User not found' });
 
     const weight = user.weight;
@@ -529,10 +533,11 @@ exports.calculate_goal = async (req, res) => {
       const toLose = weight - targetWeight;
       message = `Pour un IMC normal (24.9), vous devez perdre environ ${toLose.toFixed(1)} kg.`;
     } else if (goal === 'gain weight') {
-      targetWeight = 18.5 * (height * height);
+      targetWeight = 22 * (height * height); // IMC médian dans la norme
       const toGain = targetWeight - weight;
-      message = `Pour un IMC normal (18.5), vous devez prendre environ ${toGain.toFixed(1)} kg.`;
+      message = `Pour un IMC normal (22), vous devez prendre environ ${toGain.toFixed(1)} kg.`;
     } else if (goal === 'build muscle') {
+      targetWeight = null; // Peut rester null si pas pertinent
       message = `Votre IMC est ${imc.toFixed(1)}. Concentrez-vous sur un excédent calorique contrôlé et l'entraînement.`;
     }
 
@@ -540,7 +545,7 @@ exports.calculate_goal = async (req, res) => {
       userId,
       goal,
       targetWeight,
-      initialWeight: weight, // Save the initial weight when the goal is set
+      initialWeight: weight,
       imc,
     });
 
@@ -551,6 +556,7 @@ exports.calculate_goal = async (req, res) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
+
 // getGoalByUserId.js
 exports.getGoalByUserId = async (req, res) => {
   const { userId } = req.params;
@@ -733,5 +739,213 @@ exports.getGoal_targetWieght = async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.addProgression = async (req, res) => {
+  const { userId, targetWeight, initialWeight, currentWeight, weightDifference } = req.body;
+
+  try {
+    // 1. Validation de l'ID utilisateur
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: "ID utilisateur invalide" });
+    }
+
+    // 2. Récupérer l'utilisateur
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ error: "Utilisateur non trouvé" });
+
+    // 3. Créer une progression
+    const progression = new Progression({
+      userId,
+      targetWeight,
+      initialWeight,
+      currentWeight,
+      weightDifference,
+    });
+
+    await progression.save();
+
+    // 4. Mettre à jour le poids de l'utilisateur
+    await User.findByIdAndUpdate(userId, { weight: currentWeight });
+
+    // 5. Recalcul du targetWeight et IMC dans Goal
+    const goal = await Goal.findOne({ userId });
+    if (goal) {
+      const height = user.height / 100;
+      const imc = currentWeight / (height * height);
+
+      let newTargetWeight;
+      let message = '';
+
+      if (goal.goal === 'lose weight') { // Utiliser "goal" au lieu de "goalType" pour correspondre à votre schéma
+        newTargetWeight = 24.9 * (height * height);
+        const toLose = currentWeight - newTargetWeight;
+        message = `Pour un IMC normal (24.9), vous devez perdre environ ${toLose.toFixed(1)} kg.`;
+      } else if (goal.goal === 'gain weight') {
+        newTargetWeight = 22 * (height * height);
+        const toGain = newTargetWeight - currentWeight;
+        message = `Pour un IMC normal (22), vous devez prendre environ ${toGain.toFixed(1)} kg.`;
+      } else if (goal.goal === 'build muscle') {
+        newTargetWeight = null;
+        message = `Votre IMC est ${imc.toFixed(1)}. Concentrez-vous sur un excédent calorique contrôlé et l'entraînement.`;
+      }
+
+      // Mise à jour du Goal en utilisant l'_id du document Goal
+      const updatedGoal = await Goal.findByIdAndUpdate(
+        goal._id, // Utiliser l'ID du document Goal
+        { 
+          imc: imc, 
+          targetWeight: newTargetWeight, 
+          initialWeight: initialWeight,
+          currentWeight :currentWeight
+        },
+        { new: true, runValidators: true } // Retourner le document mis à jour
+      );
+
+      if (!updatedGoal) {
+        return res.status(500).json({ error: "Erreur lors de la mise à jour de l'objectif" });
+      }
+    }
+
+    res.status(200).json({
+      message: "Progression enregistrée, poids et objectif mis à jour avec succès",
+      progression,
+    });
+
+  } catch (err) {
+    console.error("Erreur dans addProgressionById :", err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+
+exports.getGoal_tW_imc_ByUserId = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Vérifier si l'ID est valide
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
+    }
+
+    // Rechercher le document Goal correspondant au userId
+    const goal = await Goal.findOne({ userId });
+
+    // Vérifier si un goal existe
+    if (!goal) {
+      return res.status(404).json({ message: "Goal not found for this user" });
+    }
+
+    // Retourner uniquement les champs demandés
+    const responseData = {
+      goal: goal.goal,
+      targetWeight: goal.targetWeight,
+      imc: goal.imc,
+    };
+
+    res.status(200).json(responseData);
+  } catch (error) {
+    console.error("Error retrieving goal:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+exports.getAdherent_Fn_Ln_ById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const user = await userSchema.findById(id);
+
+    if (!user || user.role !== 'adherent') {
+      return res.status(404).json({ message: 'Adhérent non trouvé' });
+    }
+
+    res.status(200).json({
+      firstname: user.firstname,
+      lastname: user.lastname,
+    }); 
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l’adhérent:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+
+exports.getTodayNutrition = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const today = new Date().toISOString().split('T')[0]; // format YYYY-MM-DD
+
+    const meals = await Meal.find({ userId: userId, date: today });
+
+    let totalCalories = 0;
+    let totalFats = 0;
+    let totalCarbs = 0;
+    let totalProteins = 0;
+
+    meals.forEach(meal => {
+      const nutrition = meal.nutrition;
+      totalCalories += parseFloat(nutrition.Calories || 0);
+      totalFats += parseFloat(nutrition.Fats || 0);
+      totalCarbs += parseFloat(nutrition.Carbs || 0);
+      totalProteins += parseFloat(nutrition.Proteins || 0);
+    });
+
+    res.json({
+      date: today,
+      userId,
+      totalCalories,
+      totalFats,
+      totalCarbs,
+      totalProteins
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erreur serveur', error: error.message });
+  }
+};
+
+exports.getAdherentDetails = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    const user = await userSchema.findById(userId);
+
+    if (!user || user.role !== 'adherent') {
+      return res.status(404).json({ message: 'Adhérent non trouvé' });
+    }
+
+    res.status(200).json({
+      weight: user.weight,
+      height: user.height,
+      }); 
+  } catch (error) {
+    console.error('Erreur lors de la récupération de l’adhérent:', error);
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+};
+exports.updateGoal = async (req, res) => {
+  const { userId } = req.params;
+  const { goal, targetWeight } = req.body;
+
+  try {
+    if (!userId || !goal) {
+      return res.status(400).json({ message: "userId and goal are required" });
+    }
+
+    const updatedGoal = await Goal.findOneAndUpdate(
+      { userId },
+      { goal, targetWeight },
+      { new: true }
+    );
+
+    if (!updatedGoal) {
+      return res.status(404).json({ message: "Goal not found for this user" });
+    }
+
+    res.status(200).json(updatedGoal);
+  } catch (error) {
+    console.error("Error updating goal:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
 };

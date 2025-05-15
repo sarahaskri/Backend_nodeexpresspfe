@@ -8,7 +8,8 @@ const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,ad
   updateMealByAdmin, deleteMealByAdmin, getAllMealsByAdmin,getMealsByType,addExercise,
     getWorkoutsByType,deletedWorkout ,postfornotifications,calculate_goal,getGoalByUserId,
     addGoogleUser,login_with_google,getAdherentById,update,updatePassword,deleteAdherent,
-    getGoal_targetWieght
+    getGoal_targetWieght,addProgression,getGoal_tW_imc_ByUserId,getAdherent_Fn_Ln_ById,
+    getTodayNutrition,getAdherentDetails,updateGoal
 } = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
@@ -65,7 +66,14 @@ app.get('/api/users/getAdherentById/:id', getAdherentById);
 app.put('/api/users/update/:id', update);
 app.put('/api/users/updatePassword/:id', updatePassword);
 app.delete('/api/users/deleteAdherent/:id', deleteAdherent);
-app.get('/api/users/getGoal_targetWieght/:id',getGoal_targetWieght)
+app.get('/api/users/getGoal_targetWieght/:id',getGoal_targetWieght);
+app.post('/api/users/addProgression',addProgression);
+app.get('/api/users/getGoal_tW_imc_ByUserId',getGoal_tW_imc_ByUserId);
+app.get('/api/users/getAdherent_Fn_Ln_ById/:id', getAdherent_Fn_Ln_ById);
+app.get('/api/users/getTodayNutrition/:id', getTodayNutrition);
+app.get('/api/users/getAdherentDetails/:id', getAdherentDetails);
+app.put('/api/users/updateGoal/:id', updateGoal);
+
 
 
 // catch 404 and forward to error handler

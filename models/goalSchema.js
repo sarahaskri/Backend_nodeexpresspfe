@@ -2,8 +2,9 @@ const mongoose = require('mongoose');
 
 const goalSchema = new mongoose.Schema({
   userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: false
+   type: mongoose.Schema.Types.ObjectId,
+  
+   required: false
   },
   goal: {
     type: String,
@@ -11,6 +12,10 @@ const goalSchema = new mongoose.Schema({
     required: false
   },
   targetWeight: {
+    type: Number,
+    required: false
+  },
+  currentWeight: {
     type: Number,
     required: false
   },

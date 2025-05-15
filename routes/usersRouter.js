@@ -35,6 +35,11 @@ router.put('update/:id',userController.update);
 router.put('updatePassword/:id',userController.updatePassword);
 router.delete('/deleteAdherent/:id', userController.deleteAdherent);
 router.get('/getGoal_targetWieght/:userId', userController.getGoal_targetWieght);
-
+router.post('/addProgression',userController.addProgression);
+router.get('/getGoal_tW_imc_ByUserId/:userId', userController.getGoal_tW_imc_ByUserId);
+router.get('/getAdherent_Fn_Ln_ById/:id', userController.getAdherent_Fn_Ln_ById);
+router.get('/getTodayNutrition/:userId', userController.getTodayNutrition);
+router.get('/getAdherentDetails/:userId', userController.getAdherentDetails);
+router.put('/updateGoal/:userId', userController.updateGoal);
 module.exports = router; 
   

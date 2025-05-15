@@ -24,4 +24,3 @@ const MealSchema = new mongoose.Schema({
 const Meal = mongoose.model('Meal', MealSchema);
 
 module.exports = Meal;
-
