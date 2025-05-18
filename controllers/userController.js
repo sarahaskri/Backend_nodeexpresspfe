@@ -13,398 +13,399 @@ const User = require("../models/userSchema");
 
 
 module.exports.addUserAdherent = async (req, res) => {
-    try {
-        const { firstname, lastname, email, password, age } = req.body;
-        const role = "adherent";
+  try {
+    const { firstname, lastname, email, password, age } = req.body;
+    const role = "adherent";
 
-        // Vérification du format du mot de passe
-        const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
-        if (!passwordRegex.test(password)) {
-            return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
-        }
-
-        // Vérification si l'email existe déjà
-        const existingUser = await userSchema.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json("Cet email est déjà utilisé");
-        }
-
-        // Création de l'utilisateur (le hachage du mot de passe est déjà géré dans userSchema.js)
-        const user = await userSchema.create({ firstname, lastname, email, password, role, age });
-
-        // Retourne une réponse structurée
-        res.status(201).json({
-            firstname: user.firstname,
-            lastname: user.lastname,
-            email: user.email,
-            role: user.role,
-            _id: user._id,
-            createdAt: user.createdAt,
-            updatedAt: user.updatedAt
-        });
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json("Erreur serveur");
+    // Vérification du format du mot de passe
+    const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
     }
+
+    // Vérification si l'email existe déjà
+    const existingUser = await userSchema.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json("Cet email est déjà utilisé");
+    }
+
+    // Création de l'utilisateur (le hachage du mot de passe est déjà géré dans userSchema.js)
+    const user = await userSchema.create({ firstname, lastname, email, password, role, age });
+
+    // Retourne une réponse structurée
+    res.status(201).json({
+      firstname: user.firstname,
+      lastname: user.lastname,
+      email: user.email,
+      role: user.role,
+      _id: user._id,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json("Erreur serveur");
+  }
 };
 
 
 module.exports.addUserAdmin = async (req, res) => {
-    try {
-        const { firstname, lastname, email, password, age } = req.body;
-        const role = "admin";
-        const user = await userSchema.create({ firstname, lastname, email, password, role: role, age });
-        res.status(200).json({ user });
+  try {
+    const { firstname, lastname, email, password, age } = req.body;
+    const role = "admin";
+    const user = await userSchema.create({ firstname, lastname, email, password, role: role, age });
+    res.status(200).json({ user });
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.getAllUsers = async (req, res) => {
-    try {
-        const users = await userSchema.find();
-        res.status(200).json(users);
+  try {
+    const users = await userSchema.find();
+    res.status(200).json(users);
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.getUserById = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const user = await userSchema.findById(id);
-        res.status(200).json(user);
+  try {
+    const id = req.params.id;
+    const user = await userSchema.findById(id);
+    res.status(200).json(user);
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.deleteUserById = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const checkifExist = await userSchema.findById(id);
-        if (!checkifExist) {
-            res.status(404).json({ message: "user not found" });
-        }
-        const user = await userSchema.findByIdAndDelete(id);
-        res.status(200).json(user);
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+  try {
+    const id = req.params.id;
+    const checkifExist = await userSchema.findById(id);
+    if (!checkifExist) {
+      res.status(404).json({ message: "user not found" });
     }
+    const user = await userSchema.findByIdAndDelete(id);
+    res.status(200).json(user);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.addUserAdherentWithImg = async (req, res) => {
-    try {
-        const { firstname, lastname, email, password } = req.body;
-        const role = "adherent";
-        const { file_name } = req.file;
-        const user = await userSchema.create({ firstname, lastname, email, password, role: role, user_image: file_name });
-        res.status(200).json({ user });
+  try {
+    const { firstname, lastname, email, password } = req.body;
+    const role = "adherent";
+    const { file_name } = req.file;
+    const user = await userSchema.create({ firstname, lastname, email, password, role: role, user_image: file_name });
+    res.status(200).json({ user });
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.upDateAdherent = async (req, res) => {
-    try {
-        const id = req.params.id;
-        res.status(200).json(esmFonction);
+  try {
+    const id = req.params.id;
+    res.status(200).json(esmFonction);
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 exports.updateUserById = async (req, res) => {
-    try {
-        const id = req.params.id;
-        const updates = req.body;
+  try {
+    const id = req.params.id;
+    const updates = req.body;
 
-        // Vérifier si l'utilisateur existe
-        const user = await userSchema.findById(id);
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur introuvable" });
-        }
-   
-        // Vérifier si l'email est modifié et déjà utilisé
-        if (updates.email && updates.email !== user.email) {
-            const existingUser = await userSchema.findOne({ email: updates.email });
-            if (existingUser) {
-                return res.status(400).json({ message: "Cet email est déjà utilisé" });
-            }
-        }
-
-        //  Mise à jour des données
-        const updatedUser = await userSchema.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
-
-        res.status(200).json({ message: "Utilisateur mis à jour avec succès", user: updatedUser });
-    } catch (error) {
-        console.error("Erreur lors de la mise à jour :", error);
-        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    // Vérifier si l'utilisateur existe
+    const user = await userSchema.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur introuvable" });
     }
+
+    // Vérifier si l'email est modifié et déjà utilisé
+    if (updates.email && updates.email !== user.email) {
+      const existingUser = await userSchema.findOne({ email: updates.email });
+      if (existingUser) {
+        return res.status(400).json({ message: "Cet email est déjà utilisé" });
+      }
+    }
+
+    //  Mise à jour des données
+    const updatedUser = await userSchema.findByIdAndUpdate(id, updates, { new: true, runValidators: true });
+
+    res.status(200).json({ message: "Utilisateur mis à jour avec succès", user: updatedUser });
+  } catch (error) {
+    console.error("Erreur lors de la mise à jour :", error);
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
 };
 
 module.exports.searchByUserName = async (req, res) => {
-    try {
-        const { firstname } = req.body;
+  try {
+    const { firstname } = req.body;
 
-        if (!firstname) {
-            return res.status(400).json({ message: "firstname is required" });
-        }
-
-        const users = await userSchema.find({ firstname: { $regex: firstname, $options: 'i' } });
-
-        if (users.length === 0) {
-            return res.status(404).json({ message: "user not found" });
-        }
-
-        res.status(200).json({ count: users.length, users });
-
-    } catch (error) {
-        res.status(500).json({ message: error.message });
+    if (!firstname) {
+      return res.status(400).json({ message: "firstname is required" });
     }
+
+    const users = await userSchema.find({ firstname: { $regex: firstname, $options: 'i' } });
+
+    if (users.length === 0) {
+      return res.status(404).json({ message: "user not found" });
+    }
+
+    res.status(200).json({ count: users.length, users });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 module.exports.getAllUsersByAge = async (req, res) => {
-    try {
-        const users = await userSchema.find().sort({ age: 1 });
-        res.status(200).json(users);
+  try {
+    const users = await userSchema.find().sort({ age: 1 });
+    res.status(200).json(users);
 
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 module.exports.loginUser = async (req, res) => {
-    try {
-        const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-        // Recherche de l'utilisateur par son email
-        console.log("Recherche de l'utilisateur avec l'email:", email); // Log pour débogage
-        const user = await userSchema.findOne({ email });
+    // Recherche de l'utilisateur par son email
+    console.log("Recherche de l'utilisateur avec l'email:", email); // Log pour débogage
+    const user = await userSchema.findOne({ email });
 
-        if (!user) {
-            console.log("Utilisateur non trouvé pour l'email:", email); // Log pour débogage
-            return res.status(400).json({ message: "Utilisateur non trouvé" });
-        }
-
-        // Comparaison du mot de passe hashé
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (!isPasswordValid) {
-            console.log("Mot de passe incorrect pour l'utilisateur:", email); // Log pour débogage
-            return res.status(400).json({ message: "Mot de passe incorrect" });
-        }
-
-        // Connexion réussie
-        console.log("Connexion réussie pour l'utilisateur:", email); // Log pour débogage
-        return res.status(200).json({
-            message: "Connexion réussie",
-            user: { email: user.email, firstname: user.firstname ,role :user.role, _id: user._id },
-        });
-    } catch (error) {
-        console.error("Erreur serveur:", error); // Log pour débogage
-        return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    if (!user) {
+      console.log("Utilisateur non trouvé pour l'email:", email); // Log pour débogage
+      return res.status(400).json({ message: "Utilisateur non trouvé" });
     }
+
+    // Comparaison du mot de passe hashé
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      console.log("Mot de passe incorrect pour l'utilisateur:", email); // Log pour débogage
+      return res.status(400).json({ message: "Mot de passe incorrect" });
+    }
+
+    // Connexion réussie
+    console.log("Connexion réussie pour l'utilisateur:", email); // Log pour débogage
+    return res.status(200).json({
+      message: "Connexion réussie",
+      user: { email: user.email, firstname: user.firstname, role: user.role, _id: user._id },
+    });
+  } catch (error) {
+    console.error("Erreur serveur:", error); // Log pour débogage
+    return res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
 };
 
 
 module.exports.addProfileInformation = async (req, res) => {
-    try {
-        const { email, gender, age, weight, height } = req.body;
+  try {
+    const { email, gender, age, weight, height } = req.body;
 
-        const user = await userSchema.findOneAndUpdate(
-            { email }, // Recherche l'utilisateur par email
-            { $set: { gender, age, weight, height } }, // Met à jour les champs
-            { new: true, runValidators: true }
-        );
+    const user = await userSchema.findOneAndUpdate(
+      { email }, // Recherche l'utilisateur par email
+      { $set: { gender, age, weight, height } }, // Met à jour les champs
+      { new: true, runValidators: true }
+    );
 
-        if (!user) {
-            return res.status(404).json({ message: "Utilisateur non trouvé" });
-        }
-
-        res.status(200).json({ message: "Informations mises à jour avec succès", user });
-
-    } catch (error) {
-        res.status(500).json({ message: "Erreur serveur", error: error.message });
+    if (!user) {
+      return res.status(404).json({ message: "Utilisateur non trouvé" });
     }
+
+    res.status(200).json({ message: "Informations mises à jour avec succès", user });
+
+  } catch (error) {
+    res.status(500).json({ message: "Erreur serveur", error: error.message });
+  }
 };
 
 module.exports.handleGoogleSignIn = async (req, res) => {
-    try {
-        const { uid, email, firstName, lastName } = req.body;
+  try {
+    const { uid, email, firstName, lastName } = req.body;
 
-        let user = await userSchema.findOne({ email });
-        if (!user) {
-            user = new userSchema({
-                uid,
-                email,
-                firstname: firstName,
-                lastname: lastName,
-                password: "", // vide pour Google
-            });
-            await user.save();
-        }
-
-        res.status(200).json({ message: "Connexion Google réussie", user });
-    } catch (error) {
-        console.error("Erreur Google Sign-In :", error);
-        res.status(500).json({ message: "Erreur serveur" });
+    let user = await userSchema.findOne({ email });
+    if (!user) {
+      user = new userSchema({
+        uid,
+        email,
+        firstname: firstName,
+        lastname: lastName,
+        password: "", // vide pour Google
+      });
+      await user.save();
     }
+
+    res.status(200).json({ message: "Connexion Google réussie", user });
+  } catch (error) {
+    console.error("Erreur Google Sign-In :", error);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
 };
 
 
 
 
 module.exports.addMeal = async (req, res) => {
-    const { userId, mealType, mealName, date, time ,imagePath,nutrition = {}} = req.body;
- console.log("Received mealnpm run dev data:", req.body); 
-    if (!userId || !mealType || !mealName || !date || !time || !imagePath || !nutrition) {
-        return res.status(400).json({ message: 'Missing fields' });
-    }
+  const { userId, mealType, mealName, date, time, imagePath, nutrition = {} } = req.body;
+  console.log("Received mealnpm run dev data:", req.body);
+  if (!userId || !mealType || !mealName || !date || !time || !imagePath || !nutrition) {
+    return res.status(400).json({ message: 'Missing fields' });
+  }
 
-    try {
-        // Vérifier si l'utilisateur existe
-        const user = await userSchema.findById(userId);
-        if (!user) return res.status(404).json({ message: 'User not found' });
- ////nutrition
- const cleanedNutrition = {
-    Calories: String(nutrition?.Calories || '0').replace(/[^\d]/g, ''),
-    Fats: String(nutrition?.Fats || '0').replace(/[^\d]/g, ''),
-    Proteins: String(nutrition?.Proteins || '0').replace(/[^\d]/g, ''),
-    Carbs: String(nutrition?.Carbs || '0').replace(/[^\d]/g, '')
-};
-        // Créer un nouveau repas dans le modèle DailyMeal
-        const newMeal = new Meal({
-            userId,
-            mealType,
-            mealName,
-            date,
-            time,
-            imagePath,
-            nutrition: cleanedNutrition,
-        });
+  try {
+    // Vérifier si l'utilisateur existe
+    const user = await userSchema.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    ////nutrition
+    const cleanedNutrition = {
+      Calories: String(nutrition?.Calories || '0').replace(/[^\d]/g, ''),
+      Fats: String(nutrition?.Fats || '0').replace(/[^\d]/g, ''),
+      Proteins: String(nutrition?.Proteins || '0').replace(/[^\d]/g, ''),
+      Carbs: String(nutrition?.Carbs || '0').replace(/[^\d]/g, '')
+    };
+    // Créer un nouveau repas dans le modèle DailyMeal
+    const newMeal = new Meal({
+      userId,
+      mealType,
+      mealName,
+      date,
+      time,
+      imagePath,
+      nutrition: cleanedNutrition,
+    });
 
-        // Sauvegarder le repas dans la collection DailyMeals
-        await newMeal.save();
+    // Sauvegarder le repas dans la collection DailyMeals
+    await newMeal.save();
 
-        res.status(200).json({ message: 'Meal added successfully', meal: newMeal });
-    } catch (error) {
-        console.error('Add Meal Error:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
+    res.status(200).json({ message: 'Meal added successfully', meal: newMeal });
+  } catch (error) {
+    console.error('Add Meal Error:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
 
 }
 
 module.exports.todayMeal = async (req, res) => {
-    try {
-      const { userId, mealType } = req.body;
-  
-      if (!userId || !mealType) {
-        return res.status(400).json({ message: "userId and mealType are requeired" });
-      }
-  
-      // format d’aujourd’hui : YYYY-MM-DD
-      const today = new Date().toISOString().split('T')[0];
-  
-      // Récupérer tous les repas de cet utilisateur et type de repas
-      const allMeals = await Meal.find({
-        userId: userId,
-        mealType: { $regex: mealType, $options: 'i' },
-        imagePath: { $exists: true } 
-      });
-  
-      // Filtrer les repas dont la date correspond à aujourd’hui
-      const todayMeals = allMeals.filter(meal => {
-        const mealDate = new Date(meal.date).toISOString().split('T')[0];
-        return mealDate === today;
-      });
-  
-      if (todayMeals.length === 0) {
-        return res.status(404).json({ message: "No meals found for today" });
-      }
-  
-      res.status(200).json({ count: todayMeals.length, meals: todayMeals });
-  
-    } catch (error) {
-      res.status(500).json({ message: error.message });
+  try {
+    const { userId, mealType } = req.body;
+
+    if (!userId || !mealType) {
+      return res.status(400).json({ message: "userId and mealType are requeired" });
     }
-  };
-  
-  //////////////// for admin //////////////////////
-  exports.addMealByAdmin = async (req, res) => {
-    console.log('Received :', req.body);
 
-    try {
-      const meal = new Meal(req.body);
-      await meal.save();
-      res.status(201).json(meal);
-    } catch (err) {
-        console.error("Error adding :", err);
-        res.status(400).json({ error: err.message });
-      }
-  };
+    // format d’aujourd’hui : YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0];
 
-  // 🔁 Update Meal
+    // Récupérer tous les repas de cet utilisateur et type de repas
+    const allMeals = await Meal.find({
+      userId: userId,
+      mealType: { $regex: mealType, $options: 'i' },
+      imagePath: { $exists: true }
+    });
+
+    // Filtrer les repas dont la date correspond à aujourd’hui
+    const todayMeals = allMeals.filter(meal => {
+      const mealDate = new Date(meal.date).toISOString().split('T')[0];
+      return mealDate === today;
+    });
+
+    if (todayMeals.length === 0) {
+      return res.status(404).json({ message: "No meals found for today" });
+    }
+
+    res.status(200).json({ count: todayMeals.length, meals: todayMeals });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//////////////// for admin //////////////////////
+exports.addMealByAdmin = async (req, res) => {
+  console.log('Received :', req.body);
+
+  try {
+    const meal = new Meal(req.body);
+    await meal.save();
+    res.status(201).json(meal);
+  } catch (err) {
+    console.error("Error adding :", err);
+    res.status(400).json({ error: err.message });
+  }
+};
+
+// 🔁 Update Meal
 exports.updateMealByAdmin = async (req, res) => {
-    console.log('Received :', req.body);
-    try {
-      const meal = await Meal.findByIdAndUpdate(req.params.id, req.body, { new: true });
-      res.json(meal);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  };
+  console.log('Received :', req.body);
+  try {
+    const meal = await Meal.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    res.json(meal);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
 
-  // ❌ Delete Meal
-exports.deleteMealByAdmin = async (req, res) => {   
-    try {
-      await Meal.findByIdAndDelete(req.params.id);
-      res.json({ message: 'Meal deleted' });
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
+// ❌ Delete Meal
+exports.deleteMealByAdmin = async (req, res) => {
+  try {
+    await Meal.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Meal deleted' });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
 
-  };
+};
 
-  // 📄 Get All Meals
+// 📄 Get All Meals
 exports.getAllMealsByAdmin = async (req, res) => {
-    try {
-      const meals = await Meal.find();
-      res.json(meals);
-    } catch (err) {
-      res.status(400).json({ error: err.message });
-    }
-  };
-  // userController.js
+  try {
+    const meals = await Meal.find();
+    res.json(meals);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+// userController.js
 // Mauvais : utilisation de req.body pour une requête GET
 exports.getMealsByType = async (req, res) => {
-    try {
-      // Correction : utiliser req.query pour les paramètres GET
-      const { mealType } = req.query;
-      
-      // Validation du paramètre
-      if (!mealType) {
-        return res.status(400).json({ error: "The mealType parameter is required" });
-      }
-  
-      const meals = await Meal.find({ mealType, 
-        role:'admin' 
-       });
-      res.json(meals);
-      console.log("Meals successfully collected :", meals); 
-    } catch (err) {
-      console.error("Error getMealsByType :", err);
-      res.status(500).json({ error: "Server error when retrieving meals" });
+  try {
+    // Correction : utiliser req.query pour les paramètres GET
+    const { mealType } = req.query;
+
+    // Validation du paramètre
+    if (!mealType) {
+      return res.status(400).json({ error: "The mealType parameter is required" });
     }
-  };
+
+    const meals = await Meal.find({
+      mealType,
+      role: 'admin'
+    });
+    res.json(meals);
+    console.log("Meals successfully collected :", meals);
+  } catch (err) {
+    console.error("Error getMealsByType :", err);
+    res.status(500).json({ error: "Server error when retrieving meals" });
+  }
+};
 
 // Ajouter un nouvel exercice
- exports.addExercise = async (req, res) => {
+exports.addExercise = async (req, res) => {
   try {
     const {
       userId,
@@ -421,8 +422,8 @@ exports.getMealsByType = async (req, res) => {
 
     if (
       !userId || !image || !nameOfExercise || !info || !date || !time ||
-      !description || !nameOfWorkout || !selectedDifficulty || 
-      burnedCalories  === undefined
+      !description || !nameOfWorkout || !selectedDifficulty ||
+      burnedCalories === undefined
     ) {
       return res.status(400).json({ message: 'All fields are required' });
     }
@@ -453,7 +454,7 @@ exports.getWorkoutsByType = async (req, res) => {
   const { userId, type } = req.params;
 
   try {
-    const workouts = await Workout.find({ userId, nameOfWorkout:type });
+    const workouts = await Workout.find({ userId, nameOfWorkout: type });
 
     if (!workouts.length) {
       return res.status(404).json({ message: 'No workouts found for this user and type' });
@@ -465,8 +466,8 @@ exports.getWorkoutsByType = async (req, res) => {
   }
 };
 
- 
-exports.deletedWorkout= async (req, res) => {
+
+exports.deletedWorkout = async (req, res) => {
   const { id } = req.params;
 
   try {
@@ -484,7 +485,7 @@ exports.deletedWorkout= async (req, res) => {
 };
 
 
-exports.postfornotifications= async (req, res) => {
+exports.postfornotifications = async (req, res) => {
   const { userId, fcmToken } = req.body;
   const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
@@ -531,14 +532,15 @@ exports.calculate_goal = async (req, res) => {
     if (goal === 'lose weight') {
       targetWeight = 24.9 * (height * height);
       const toLose = weight - targetWeight;
-      message = `Pour un IMC normal (24.9), vous devez perdre environ ${toLose.toFixed(1)} kg.`;
+      message = `For a normal BMI (24.9), you need to lose about ${toLose.toFixed(1)} kg.`;
     } else if (goal === 'gain weight') {
       targetWeight = 22 * (height * height); // IMC médian dans la norme
       const toGain = targetWeight - weight;
-      message = `Pour un IMC normal (22), vous devez prendre environ ${toGain.toFixed(1)} kg.`;
+      message = `For a normal BMI (22), you should gain approximately ${toGain.toFixed(1)} kg.`;
     } else if (goal === 'build muscle') {
-      targetWeight = null; // Peut rester null si pas pertinent
-      message = `Votre IMC est ${imc.toFixed(1)}. Concentrez-vous sur un excédent calorique contrôlé et l'entraînement.`;
+      targetWeight = weight * 1.1;
+      const toGain = targetWeight - weight;
+      message = `To build muscle, you can aim for around${targetWeight.toFixed(1)} kg, either +${toGain.toFixed(1)} kg.`;
     }
 
     const newGoal = new Goal({
@@ -564,7 +566,7 @@ exports.getGoalByUserId = async (req, res) => {
   try {
     // Recherche de l'entrée de goal associée à l'userId
     const goalEntry = await Goal.findOne({ userId }); // ou Goal.findOne({ user: userId }) selon ton schema
-    
+
     // Vérification si aucune donnée n'est trouvée pour ce userId
     if (!goalEntry) {
       return res.status(404).json({ message: 'Goal not found' });
@@ -580,26 +582,26 @@ exports.getGoalByUserId = async (req, res) => {
   } catch (error) {
     // Gestion des erreurs serveur
     console.error(error);  // Log pour aider au debug
-    res.status(500).json({ message: 'Server error' ,error: error.message});
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
 
 exports.addGoogleUser = async (req, res) => {
-  const { uid, email, name ,firstName,lastName} = req.body;
-  
+  const { uid, email, name, firstName, lastName } = req.body;
+
   try {
-  
-    console.log("userId", uid); 
+
+    console.log("userId", uid);
     // Vérifie si l'utilisateur existe déjà
-    let user = await userSchema.findOne({ userId:uid });
+    let user = await userSchema.findOne({ userId: uid });
 
     if (!user) {
       // Crée un nouvel utilisateur
       user = new userSchema({
         firstname: firstName,
         lastname: lastName,
-        userId :uid,
+        userId: uid,
         email,
         name,
         role: 'adherent' // ou 'admin' selon ton cas
@@ -614,15 +616,15 @@ exports.addGoogleUser = async (req, res) => {
 };
 
 exports.login_with_google = async (req, res) => {
-  const { email} = req.body;
+  const { email } = req.body;
   try {
-  
-    console.log("email", email); 
+
+    console.log("email", email);
     // Vérifie si l'utilisateur existe déjà
     let user = await userSchema.findOne({ email });
 
     if (user) {
-      res.status(200).json({ email:user.email,userId:user._id});
+      res.status(200).json({ email: user.email, userId: user._id });
     }
     else {
       res.status(500).json({ message: "User not found" });
@@ -650,30 +652,70 @@ exports.getAdherentById = async (req, res) => {
       weight: user.weight,
       height: user.height,
       password: user.password,
-    }); 
+    });
   } catch (error) {
     console.error('Erreur lors de la récupération de l’adhérent:', error);
     res.status(500).json({ message: 'Erreur serveur' });
   }
 };
 
-exports.update= async (req, res) => {
+exports.update = async (req, res) => {
   const { id } = req.params;
   const { firstname, lastname, email, weight, height, age, goal } = req.body;
 
-  // Validation email
-  const emailRegex = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+  // Correction du regex email
+  const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
 
   try {
     await userSchema.findByIdAndUpdate(id, { firstname, lastname, email, weight, height, age, goal });
+
+    // Conversion des valeurs en nombres
+    const numericWeight = parseFloat(weight);
+    const numericHeight = parseFloat(height);
+    
+    // Vérification des nombres valides
+    if (isNaN(numericWeight) || isNaN(numericHeight)) {
+      return res.status(400).json({ error: 'Invalid weight or height format' });
+    }
+
+    // Conversion de la taille en mètres
+    const heightInMeters = numericHeight / 100;
+
+    // Calcul correct de l'IMC
+    const imc = numericWeight / (heightInMeters * heightInMeters);
+
+    let targetWeight = null;
+
+    // Calculs corrigés avec la taille en mètres
+    if (goal === 'lose weight') {
+      targetWeight = 24.9 * (heightInMeters * heightInMeters);
+    } else if (goal === 'gain weight') {
+      targetWeight = 22 * (heightInMeters * heightInMeters);
+    } else if (goal === 'build muscle') {
+      targetWeight = numericWeight * 1.1; // Utilisation de numericWeight au lieu de weight
+    }
+
+    // Mise à jour de l'objectif
+    const existingGoal = await Goal.findOne({ userId: id });
+    if (existingGoal) {
+      await Goal.findOneAndUpdate(
+        { userId: id },
+        { goal, imc, targetWeight }
+      );
+    } else {
+      return res.status(404).json({ error: "No goals found for this user" });
+    }
+
     res.status(200).json({ message: 'Profile updated successfully' });
+
   } catch (error) {
     res.status(500).json({ error: 'Failed to update profile' });
   }
 };
+
 exports.updatePassword = async (req, res) => {
   const { id } = req.params;
   const { oldPassword, newPassword } = req.body;
@@ -695,7 +737,7 @@ exports.updatePassword = async (req, res) => {
 
     const passwordRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordRegex.test(newPassword)) {
-        return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
+      return res.status(400).json("Le mot de passe doit contenir au moins 8 caractères, une majuscule, une minuscule, un chiffre et un caractère spécial.");
     }
 
     user.password = newPassword;
@@ -706,7 +748,7 @@ exports.updatePassword = async (req, res) => {
     console.error('Password update error:', error); // Logging ajouté
     res.status(500).json({ error: 'Failed to update password' });
   }
-}; 
+};
 exports.deleteAdherent = async (req, res) => {
   const { id } = req.params;
   try {
@@ -794,11 +836,11 @@ exports.addProgression = async (req, res) => {
       // Mise à jour du Goal en utilisant l'_id du document Goal
       const updatedGoal = await Goal.findByIdAndUpdate(
         goal._id, // Utiliser l'ID du document Goal
-        { 
-          imc: imc, 
-          targetWeight: newTargetWeight, 
+        {
+          imc: imc,
+          targetWeight: newTargetWeight,
           initialWeight: initialWeight,
-          currentWeight :currentWeight
+          currentWeight: currentWeight
         },
         { new: true, runValidators: true } // Retourner le document mis à jour
       );
@@ -864,7 +906,7 @@ exports.getAdherent_Fn_Ln_ById = async (req, res) => {
     res.status(200).json({
       firstname: user.firstname,
       lastname: user.lastname,
-    }); 
+    });
   } catch (error) {
     console.error('Erreur lors de la récupération de l’adhérent:', error);
     res.status(500).json({ message: 'Erreur serveur' });
@@ -918,7 +960,7 @@ exports.getAdherentDetails = async (req, res) => {
     res.status(200).json({
       weight: user.weight,
       height: user.height,
-      }); 
+    });
   } catch (error) {
     console.error('Erreur lors de la récupération de l’adhérent:', error);
     res.status(500).json({ message: 'Erreur serveur' });
