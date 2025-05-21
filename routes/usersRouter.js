@@ -42,5 +42,10 @@ router.get('/getAdherent_Fn_Ln_ById/:id', userController.getAdherent_Fn_Ln_ById)
 router.get('/getTodayNutrition/:userId', userController.getTodayNutrition);
 router.get('/getAdherentDetails/:userId', userController.getAdherentDetails);
 router.put('/updateGoal/:userId', userController.updateGoal);
+router.post('/getAdvice',userController.getAdvice);
+router.get('/getNotifications/:userId',userController.getNotifications);
+router.post('/todayExercice', userController.todayExercice);
+router.delete('/deleteNotification/:notificationId', userController.deleteNotification);
+
 module.exports = router; 
   

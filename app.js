@@ -9,7 +9,8 @@ const { addUserAdherent, loginUser, addProfileInformation ,addMeal, todayMeal,ad
     getWorkoutsByType,deletedWorkout ,postfornotifications,calculate_goal,getGoalByUserId,
     addGoogleUser,login_with_google,getAdherentById,update,updatePassword,deleteAdherent,
     getGoal_targetWieght,addProgression,getGoal_tW_imc_ByUserId,getAdherent_Fn_Ln_ById,
-    getTodayNutrition,getAdherentDetails,updateGoal
+    getTodayNutrition,getAdherentDetails,updateGoal,getAdvice,getNotifications,
+    todayExercice,deleteNotification
 } = require('./controllers/userController'); // Importation du contrôleur
 
 require("dotenv").config();
@@ -73,7 +74,10 @@ app.get('/api/users/getAdherent_Fn_Ln_ById/:id', getAdherent_Fn_Ln_ById);
 app.get('/api/users/getTodayNutrition/:id', getTodayNutrition);
 app.get('/api/users/getAdherentDetails/:id', getAdherentDetails);
 app.put('/api/users/updateGoal/:id', updateGoal);
-
+app.post('/api/users/getAdvice',getAdvice);
+app.get('/api/users/getNotifications/:userId',getNotifications);
+app.post('/api/users/todayExercice',todayExercice);
+app.delete('/api/users/deleteNotification',deleteNotification);
 
 
 // catch 404 and forward to error handler

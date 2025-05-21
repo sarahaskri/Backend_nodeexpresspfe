@@ -10,6 +10,8 @@ const app = express();
 app.use(express.json());
 const mongoose = require('mongoose');
 const User = require("../models/userSchema");
+const Conseil = require('../models/conseilSchema');
+const Notification = require('../models/NotificationSchema');
 
 
 module.exports.addUserAdherent = async (req, res) => {
@@ -185,30 +187,30 @@ module.exports.loginUser = async (req, res) => {
     const { email, password } = req.body;
 
     // Recherche de l'utilisateur par son email
-    console.log("Recherche de l'utilisateur avec l'email:", email); // Log pour débogage
+    console.log("Search user with email:", email); // Log pour débogage
     const user = await userSchema.findOne({ email });
 
     if (!user) {
-      console.log("Utilisateur non trouvé pour l'email:", email); // Log pour débogage
-      return res.status(400).json({ message: "Utilisateur non trouvé" });
+      console.log("User not found for email:", email); // Log pour débogage
+      return res.status(400).json({ message: "User not found" });
     }
 
     // Comparaison du mot de passe hashé
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
-      console.log("Mot de passe incorrect pour l'utilisateur:", email); // Log pour débogage
-      return res.status(400).json({ message: "Mot de passe incorrect" });
+      console.log("Incorrect password for user:", email); // Log pour débogage
+      return res.status(400).json({ message: "Incorrect password" });
     }
 
     // Connexion réussie
     console.log("Connexion réussie pour l'utilisateur:", email); // Log pour débogage
     return res.status(200).json({
-      message: "Connexion réussie",
+      message: "Connection successful",
       user: { email: user.email, firstname: user.firstname, role: user.role, _id: user._id },
     });
   } catch (error) {
-    console.error("Erreur serveur:", error); // Log pour débogage
-    return res.status(500).json({ message: "Erreur serveur", error: error.message });
+    console.error("Server Error:", error); // Log pour débogage
+    return res.status(500).json({ message: "Server Error ", error: error.message });
   }
 };
 
@@ -484,6 +486,7 @@ exports.deletedWorkout = async (req, res) => {
   }
 };
 
+//notifications
 
 exports.postfornotifications = async (req, res) => {
   const { userId, fcmToken } = req.body;
@@ -493,16 +496,22 @@ exports.postfornotifications = async (req, res) => {
     const workout = await Workout.findOne({ userId, date: today });
 
     if (workout) {
+      const title = "Today's training";
+      const body = `you have "${workout.nameOfExercise}" today at ${workout.time}`;
+
       const message = {
-        notification: {
-          title: " Today's training ",
-          body: `you have "${workout.nameOfExercise}" today at ${workout.time}`
-        },
+        notification: { title, body },
         token: fcmToken,
       };
 
       await admin.messaging().send(message);
-      return res.status(200).send('Notification sent');
+
+
+      const savedNotif = await Notification.create({ userId, title, body });
+      console.log('Notification saved:', savedNotif);
+
+
+      return res.status(200).send('Notification sent and saved');
     }
 
     res.status(200).send('No exercise today');
@@ -511,6 +520,26 @@ exports.postfornotifications = async (req, res) => {
     res.status(500).send('Server error');
   }
 };
+// GET pour récupérer les notifications 
+exports.getNotifications = async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    // Validate userId as a MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      console.error('Invalid userId in getNotifications:', userId);
+      return res.status(400).json({ error: 'Invalid userId' });
+    }
+
+    const notifications = await Notification.find({ userId }).sort({ date: -1 });
+    console.log('Notifications fetched:', notifications);
+    res.status(200).json(notifications);
+  } catch (error) {
+    console.error('Error in getNotifications:', error);
+    res.status(500).json({ error: 'Server error: ' + error.message });
+  }
+};
+
 ///////////// GOAL CONTROLLER //
 
 
@@ -641,7 +670,7 @@ exports.getAdherentById = async (req, res) => {
     const user = await userSchema.findById(id);
 
     if (!user || user.role !== 'adherent') {
-      return res.status(404).json({ message: 'Adhérent non trouvé' });
+      return res.status(404).json({ message: 'Member not found' });
     }
 
     res.status(200).json({
@@ -652,10 +681,11 @@ exports.getAdherentById = async (req, res) => {
       weight: user.weight,
       height: user.height,
       password: user.password,
+      gender: user.gender,
     });
   } catch (error) {
-    console.error('Erreur lors de la récupération de l’adhérent:', error);
-    res.status(500).json({ message: 'Erreur serveur' });
+    console.error('Error retrieving member:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 };
 
@@ -663,42 +693,49 @@ exports.update = async (req, res) => {
   const { id } = req.params;
   const { firstname, lastname, email, weight, height, age, goal } = req.body;
 
-  // Correction du regex email
   const emailRegex = /^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/;
   if (!emailRegex.test(email)) {
     return res.status(400).json({ error: 'Invalid email format' });
   }
+  const validGoals = ['lose weight', 'gain weight', 'build muscle'];
+  if (!validGoals.includes(goal)) {
+    return res.status(400).json({ error: 'Invalid goal. Must be one of: lose weight, gain weight, build muscle' });
+  }
 
   try {
-    await userSchema.findByIdAndUpdate(id, { firstname, lastname, email, weight, height, age, goal });
+    const existingUser = await userSchema.findOne({ email, _id: { $ne: id } });
+    if (existingUser) {
+      return res.status(409).json({ error: 'This email is already used' });
+    }
 
-    // Conversion des valeurs en nombres
+    await userSchema.findByIdAndUpdate(id, {
+      firstname,
+      lastname,
+      email,
+      weight,
+      height,
+      age,
+      goal,
+    });
+
     const numericWeight = parseFloat(weight);
     const numericHeight = parseFloat(height);
-    
-    // Vérification des nombres valides
     if (isNaN(numericWeight) || isNaN(numericHeight)) {
       return res.status(400).json({ error: 'Invalid weight or height format' });
     }
 
-    // Conversion de la taille en mètres
     const heightInMeters = numericHeight / 100;
-
-    // Calcul correct de l'IMC
     const imc = numericWeight / (heightInMeters * heightInMeters);
 
     let targetWeight = null;
-
-    // Calculs corrigés avec la taille en mètres
     if (goal === 'lose weight') {
       targetWeight = 24.9 * (heightInMeters * heightInMeters);
     } else if (goal === 'gain weight') {
       targetWeight = 22 * (heightInMeters * heightInMeters);
     } else if (goal === 'build muscle') {
-      targetWeight = numericWeight * 1.1; // Utilisation de numericWeight au lieu de weight
+      targetWeight = numericWeight * 1.1;
     }
 
-    // Mise à jour de l'objectif
     const existingGoal = await Goal.findOne({ userId: id });
     if (existingGoal) {
       await Goal.findOneAndUpdate(
@@ -710,11 +747,12 @@ exports.update = async (req, res) => {
     }
 
     res.status(200).json({ message: 'Profile updated successfully' });
-
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Failed to update profile' });
   }
 };
+
 
 exports.updatePassword = async (req, res) => {
   const { id } = req.params;
@@ -989,5 +1027,114 @@ exports.updateGoal = async (req, res) => {
   } catch (error) {
     console.error("Error updating goal:", error);
     res.status(500).json({ message: "Server error", error: error.message });
+  }
+};
+
+
+exports.getAdvice = async (req, res) => {
+  const { goal } = req.body;
+
+  try {
+    const conseils = await Conseil.find({ goal });
+    if (conseils.length === 0) {
+      return res.status(404).json({ message: 'No tips found for this lens.' });
+    }
+
+  
+    const adviceList = conseils
+      .flatMap(c => c.advice || []) 
+      .filter(advice => typeof advice === 'string' && advice.trim() !== ''); 
+
+    if (adviceList.length === 0) {
+      return res.status(404).json({ message: 'No valid advice found.' });
+    }
+
+    res.status(200).json({ advice: adviceList });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error });
+  }
+};
+
+exports.todayExercice = async (req, res) => {
+  const { userId } = req.body;
+  const todayDate = new Date();
+  const today = todayDate.toISOString().split('T')[0]; // 'YYYY-MM-DD'
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid userId' });
+    }
+
+    const workouts = await Workout.find({ userId, date: today });
+
+    if (workouts.length === 0) {
+      return res.status(404).json({ message: 'No exercise planned for today' });
+    }
+
+    const notificationsSent = [];
+
+    for (const workout of workouts) {
+      const exerciseName = workout.nameOfExercise;
+      const time = workout.time || ''; // facultatif
+
+      const formattedDate = todayDate.toLocaleDateString('fr-FR');
+      const title = 'Training Reminder';
+      const body = `Exercise scheduled for${formattedDate} : ${exerciseName}${time ? ' at ' + time : ''}.`;
+
+      // Vérifie si une notif identique existe déjà pour aujourd’hui
+      const existing = await Notification.findOne({
+        userId,
+        title,
+        body,
+        date: {
+          $gte: new Date(today + 'T00:00:00.000Z'),
+          $lte: new Date(today + 'T23:59:59.999Z'),
+        },
+      });
+
+      if (!existing) {
+        const newNotif = await Notification.create({
+          userId,
+          title,
+          body,
+        });
+        notificationsSent.push(newNotif);
+      }
+    }
+
+    if (notificationsSent.length > 0) {
+      return res.status(200).json({
+        message: `${notificationsSent.length} notification(s) successfully registered.`,
+        notifications: notificationsSent,
+      });
+    } else {
+      return res.status(200).json({
+        message: 'Notifications already recorded for all exercises.',
+      });
+    }
+
+  } catch (error) {
+    console.error('Error in todayExercise:', error);
+    return res.status(500).json({ error: 'Server Error: ' + error.message });
+  }
+};
+exports.deleteNotification = async (req, res) => {
+  const { notificationId } = req.params;
+
+  try {
+    if (!mongoose.Types.ObjectId.isValid(notificationId)) {
+      return res.status(400).json({ error: 'Invalid notification ID' });
+    }
+
+    const deleted = await Notification.findByIdAndDelete(notificationId);
+
+    if (!deleted) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    return res.status(200).json({ message: 'Notification supprimée avec succès.' });
+  } catch (error) {
+    console.error('Erreur lors de la suppression :', error);
+    return res.status(500).json({ error: 'Erreur serveur : ' + error.message });
   }
 };
